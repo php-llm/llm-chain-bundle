@@ -85,18 +85,20 @@ final class LlmChainExtension extends Extension
 
     private function processLlmConfig(string $name, array $llm, ContainerBuilder $container): void
     {
+        $runtime = isset($llm['runtime']) ? 'llm_chain.runtime.'.$llm['runtime'] : Runtime::class;
+
         $definition = new ChildDefinition(Gpt::class);
-        $definition
-            ->replaceArgument('$runtime', new Reference('llm_chain.runtime.'.$llm['runtime']));
+        $definition->replaceArgument('$runtime', new Reference($runtime));
 
         $container->setDefinition('llm_chain.llm.'.$name, $definition);
     }
 
     private function processEmbeddingsConfig(string $name, mixed $embeddings, ContainerBuilder $container): void
     {
+        $runtime = isset($embeddings['runtime']) ? 'llm_chain.runtime.'.$embeddings['runtime'] : Runtime::class;
+
         $definition = new ChildDefinition(Embeddings::class);
-        $definition
-            ->replaceArgument('$runtime', new Reference('llm_chain.runtime.'.$embeddings['runtime']));
+        $definition->replaceArgument('$runtime', new Reference($runtime));
 
         $container->setDefinition('llm_chain.embeddings.'.$name, $definition);
     }

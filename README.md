@@ -13,13 +13,61 @@ composer require php-llm/llm-chain-bundle:@dev php-llm/llm-chain:@dev
 ```yaml
 # config/packages/llm_chain.yaml
 llm_chain:
+  runtimes:
+    azure_gpt:
+      type: 'azure'
+      base_url: '%env(AZURE_OPENAI_BASEURL)%'
+      deployment: '%env(AZURE_OPENAI_GPT)%'
+      api_key: '%env(AZURE_OPENAI_KEY)%'
+      version: '%env(AZURE_OPENAI_VERSION)%'
+    azure_embeddings:
+      type: 'azure'
+      base_url: '%env(AZURE_OPENAI_BASEURL)%'
+      deployment: '%env(AZURE_OPENAI_EMBEDDINGS)%'
+      api_key: '%env(AZURE_OPENAI_KEY)%'
+      version: '%env(AZURE_OPENAI_VERSION)%'
     openai:
-        api_key: '%env(OPENAI_API_KEY)%'
-        model: 'gpt-4o'
-        temperature: 1.0
+      type: 'openai'
+      api_key: '%env(OPENAI_API_KEY)%'
+  llms:
+    azure_gpt:
+      runtime: 'azure_gpt'
+    original_gpt:
+      runtime: 'openai'
+  embeddings:
+    azure_embeddings:
+      runtime: 'azure_embeddings'
+    original_embeddings:
+      runtime: 'openai'
 ```
 
 ## Usage
+
+### Simple Chat
+
+Use the simple chat service to leverage GPT:
+```php
+use PhpLlm\LlmChain\Chat;
+
+final readonly class MyService
+{
+    public function __construct(
+        private Chat $chat,
+    ) {
+    }
+    
+    public function submit(string $message): string
+    {
+        $messages = new MessageBag();
+        $messages[] = Message::forSystem('Speak like a pirate.');
+        $messages[] = Message::ofUser($message);
+        
+        return $this->chat->send($message);
+    }
+}
+```
+
+### Tool Chain
 
 Use the tool chain service to leverage tool calling with GPT:
 ```php
@@ -27,11 +75,10 @@ use PhpLlm\LlmChain\Message\Message;
 use PhpLlm\LlmChain\Message\MessageBag;
 use PhpLlm\LlmChain\ToolChain;
 
-
-final class MyService
+final readonly class MyService
 {
     public function __construct(
-        private ToolChain $toolChain
+        private ToolChain $toolChain,
     ) {
     }
     

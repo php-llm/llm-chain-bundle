@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use PhpLlm\LlmChain\ChatChain;
-use PhpLlm\LlmChain\LlmChainInterface;
-use PhpLlm\LlmChain\OpenAI\ChatModel;
-use PhpLlm\LlmChain\OpenAI\Embeddings;
-use PhpLlm\LlmChain\OpenAI\OpenAIClient;
+use PhpLlm\LlmChain\Chat;
+use PhpLlm\LlmChain\OpenAI\Model\Embeddings;
+use PhpLlm\LlmChain\OpenAI\Model\Gpt;
+use PhpLlm\LlmChain\OpenAI\Runtime;
+use PhpLlm\LlmChain\RetrievalChain;
 use PhpLlm\LlmChain\ToolBox\ParameterAnalyzer;
 use PhpLlm\LlmChain\ToolBox\Registry;
 use PhpLlm\LlmChain\ToolBox\ToolAnalyzer;
 use PhpLlm\LlmChain\ToolChain;
+use PhpLlm\LlmChain\OpenAI\Runtime\Azure as AzureRuntime;
+use PhpLlm\LlmChain\OpenAI\Runtime\OpenAI as OpenAIRuntime;
 
 return static function (ContainerConfigurator $container) {
     $container->services()
@@ -21,20 +23,35 @@ return static function (ContainerConfigurator $container) {
             ->autoconfigure()
 
         // chains
+        ->set(Chat::class)
+        ->set(RetrievalChain::class)
         ->set(ToolChain::class)
-        ->set(ChatChain::class)
-        ->alias(LlmChainInterface::class, ChatChain::class)
 
-        // openai
-        ->set(ChatModel::class)
+        // runtimes
+        ->set(AzureRuntime::class)
+            ->abstract()
             ->args([
-                '$model' => '%llm_chain.openai.model%',
-                '$temperature' => '%llm_chain.openai.temperature%',
+                '$baseUrl' => abstract_arg('Base URL for Azure API'),
+                '$deployment' => abstract_arg('Deployment for Azure API'),
+                '$apiVersion' => abstract_arg('API version for Azure API'),
+                '$key' => abstract_arg('API key for Azure API'),
+            ])
+        ->set(OpenAIRuntime::class)
+            ->abstract()
+            ->args([
+                '$apiKey' => abstract_arg('API key for OpenAI API'),
+            ])
+
+        // models
+        ->set(Gpt::class)
+            ->abstract()
+            ->args([
+                '$runtime' => service(Runtime::class),
             ])
         ->set(Embeddings::class)
-        ->set(OpenAIClient::class)
+            ->abstract()
             ->args([
-                '$apiKey' => '%llm_chain.openai.api_key%',
+                '$runtime' => service(Runtime::class),
             ])
 
         // tools

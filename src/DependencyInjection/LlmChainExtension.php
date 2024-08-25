@@ -11,6 +11,9 @@ use PhpLlm\LlmChain\OpenAI\Model\Gpt;
 use PhpLlm\LlmChain\OpenAI\Runtime;
 use PhpLlm\LlmChain\OpenAI\Runtime\Azure as AzureRuntime;
 use PhpLlm\LlmChain\OpenAI\Runtime\OpenAI as OpenAIRuntime;
+use PhpLlm\LlmChain\Store\ChromaDb\Store as ChromaDbStore;
+use PhpLlm\LlmChain\Store\StoreInterface;
+use PhpLlm\LlmChain\Store\VectorStoreInterface;
 use PhpLlm\LlmChain\ToolBox\AsTool;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -48,6 +51,14 @@ final class LlmChainExtension extends Extension
         }
         if (1 === count($config['embeddings'])) {
             $container->setAlias(EmbeddingModel::class, 'llm_chain.embeddings.'.$name);
+        }
+
+        foreach ($config['stores'] as $name => $store) {
+            $this->processStoreConfig($name, $store, $container);
+        }
+        if (1 === count($config['stores'])) {
+            $container->setAlias(VectorStoreInterface::class, 'llm_chain.store.'.$name);
+            $container->setAlias(StoreInterface::class, 'llm_chain.store.'.$name);
         }
 
         $container->registerAttributeForAutoconfiguration(AsTool::class, static function (ChildDefinition $definition, AsTool $attribute): void {
@@ -101,5 +112,15 @@ final class LlmChainExtension extends Extension
         $definition->replaceArgument('$runtime', new Reference($runtime));
 
         $container->setDefinition('llm_chain.embeddings.'.$name, $definition);
+    }
+
+    private function processStoreConfig(string $name, mixed $stores, ContainerBuilder $container): void
+    {
+        if ('chroma-db' === $stores['engine']) {
+            $definition = new ChildDefinition(ChromaDbStore::class);
+            $definition->replaceArgument('$collectionName', $stores['collection_name']);
+
+            $container->setDefinition('llm_chain.store.'.$name, $definition);
+        }
     }
 }

@@ -47,6 +47,15 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+                ->arrayNode('stores')
+                    ->normalizeKeys(false)
+                    ->useAttributeAsKey('name')
+                    ->arrayPrototype()
+                        ->children()
+                            ->scalarNode('engine')->isRequired()->end()
+                            ->scalarNode('collection_name')->end()
+                        ->end()
+                    ->end()
             ->end()
         ;
 

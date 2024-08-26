@@ -13,32 +13,42 @@ composer require php-llm/llm-chain-bundle:@dev php-llm/llm-chain:@dev
 ```yaml
 # config/packages/llm_chain.yaml
 llm_chain:
-  runtimes:
-    azure_gpt:
-      type: 'azure'
-      base_url: '%env(AZURE_OPENAI_BASEURL)%'
-      deployment: '%env(AZURE_OPENAI_GPT)%'
-      api_key: '%env(AZURE_OPENAI_KEY)%'
-      version: '%env(AZURE_OPENAI_VERSION)%'
-    azure_embeddings:
-      type: 'azure'
-      base_url: '%env(AZURE_OPENAI_BASEURL)%'
-      deployment: '%env(AZURE_OPENAI_EMBEDDINGS)%'
-      api_key: '%env(AZURE_OPENAI_KEY)%'
-      version: '%env(AZURE_OPENAI_VERSION)%'
-    openai:
-      type: 'openai'
-      api_key: '%env(OPENAI_API_KEY)%'
-  llms:
-    azure_gpt:
-      runtime: 'azure_gpt'
-    original_gpt:
-      runtime: 'openai'
-  embeddings:
-    azure_embeddings:
-      runtime: 'azure_embeddings'
-    original_embeddings:
-      runtime: 'openai'
+    runtimes:
+        azure_gpt:
+            type: 'azure'
+            base_url: '%env(AZURE_OPENAI_BASEURL)%'
+            deployment: '%env(AZURE_OPENAI_GPT)%'
+            api_key: '%env(AZURE_OPENAI_KEY)%'
+            version: '%env(AZURE_OPENAI_VERSION)%'
+        azure_embeddings:
+            type: 'azure'
+            base_url: '%env(AZURE_OPENAI_BASEURL)%'
+            deployment: '%env(AZURE_OPENAI_EMBEDDINGS)%'
+            api_key: '%env(AZURE_OPENAI_KEY)%'
+            version: '%env(AZURE_OPENAI_VERSION)%'
+        openai:
+            type: 'openai'
+            api_key: '%env(OPENAI_API_KEY)%'
+    llms:
+        azure_gpt:
+            runtime: 'azure_gpt'
+        original_gpt:
+            runtime: 'openai'
+    embeddings:
+        azure_embeddings:
+            runtime: 'azure_embeddings'
+        original_embeddings:
+            runtime: 'openai'
+    stores:
+        chroma_db:
+            type: 'chroma-db'
+            collection_name: '%env(CHROMA_COLLECTION)%'
+        azure_search:
+            type: 'azure-search'
+            api_key: '%env(AZURE_SEARCH_KEY)%' 
+            endpoint: '%env(AZURE_SEARCH_ENDPOINT)%'
+            index_name: '%env(AZURE_SEARCH_INDEX)%' 
+            api_version: '2024-07-01'
 ```
 
 ## Usage

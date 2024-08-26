@@ -11,6 +11,7 @@ use PhpLlm\LlmChain\OpenAI\Model\Gpt;
 use PhpLlm\LlmChain\OpenAI\Runtime;
 use PhpLlm\LlmChain\OpenAI\Runtime\Azure as AzureRuntime;
 use PhpLlm\LlmChain\OpenAI\Runtime\OpenAI as OpenAIRuntime;
+use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
 use PhpLlm\LlmChain\Store\ChromaDb\Store as ChromaDbStore;
 use PhpLlm\LlmChain\Store\StoreInterface;
 use PhpLlm\LlmChain\Store\VectorStoreInterface;
@@ -119,6 +120,17 @@ final class LlmChainExtension extends Extension
         if ('chroma-db' === $stores['engine']) {
             $definition = new ChildDefinition(ChromaDbStore::class);
             $definition->replaceArgument('$collectionName', $stores['collection_name']);
+
+            $container->setDefinition('llm_chain.store.'.$name, $definition);
+        }
+
+        if ('azure-search' === $stores['engine']) {
+            $definition = new ChildDefinition(AzureSearchStore::class);
+            $definition
+                ->replaceArgument('$endpointUrl', $stores['endpoint'])
+                ->replaceArgument('$apiKey', $stores['api_key'])
+                ->replaceArgument('$indexName', $stores['index_name'])
+                ->replaceArgument('$apiVersion', $stores['api_version']);
 
             $container->setDefinition('llm_chain.store.'.$name, $definition);
         }

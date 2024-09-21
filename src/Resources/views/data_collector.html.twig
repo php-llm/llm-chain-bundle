@@ -76,7 +76,7 @@
                                                 {% for message in call.messages %}
                                                     <li>
                                                         <strong>{{ message.role.value|title }}:</strong>
-                                                        {{ message.hasFunctionCall ? dump(message.functionCall) : message.content }}
+                                                        {{ message.hasToolCalls ? dump(message.toolCalls) : message.content }}
                                                     </li>
                                                 {% endfor %}
                                             </ol>
@@ -114,7 +114,7 @@
                 <tbody>
                     <tr>
                         <th>Arguments</th>
-                        <td>{{ call.arguments }}</td>
+                        <td>{{ dump(call.arguments) }}</td>
                     </tr>
                     <tr>
                         <th>Response</th>

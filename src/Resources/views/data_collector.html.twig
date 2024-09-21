@@ -33,6 +33,18 @@
     </span>
 {% endblock %}
 
+{% macro tool_calls(toolCalls) %}
+    Tool call(s):
+    <ul>
+        {% for toolCall in toolCalls %}
+            <li>
+                <strong>{{ toolCall.name }}({{ toolCall.arguments|map((value, key) => "#{key}: #{value}")|join(', ') }})</strong>
+                <i>(ID: {{ toolCall.id }})</i>
+            </li>
+        {% endfor %}
+    </ul>
+{% endmacro %}
+
 {% block panel %}
     <h2>LlmChain</h2>
     <section class="metrics">
@@ -76,7 +88,14 @@
                                                 {% for message in call.messages %}
                                                     <li>
                                                         <strong>{{ message.role.value|title }}:</strong>
-                                                        {{ message.hasToolCalls ? dump(message.toolCalls) : message.content }}
+                                                        {% if message.hasToolCalls and 'assistant' == message.role.value %}
+                                                            {{ _self.tool_calls(message.toolCalls) }}
+                                                        {% elseif message.hasToolCalls and 'tool' == message.role.value %}
+                                                            <i>Result of tool call with ID {{ message.toolCalls[0].id }}</i><br />
+                                                            {{ message.content|nl2br }}
+                                                        {% else %}
+                                                            {{ message.content|nl2br }}
+                                                        {% endif %}
                                                     </li>
                                                 {% endfor %}
                                             </ol>
@@ -84,11 +103,17 @@
                                     </tr>
                                     <tr>
                                         <th>Options</th>
-                                        <td>{{ dump(call.options) }}</td>
+                                        <td>
+                                            <ul>
+                                                {% for key, value in call.options %}
+                                                    <li>{{ key }}: {{ dump(value) }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <th>Response</th>
-                                        <td>{{ dump(call.response) }}</td>
+                                        <td>{{ call.response.hasToolCalls ? _self.tool_calls(call.response.toolCalls) : call.response.content }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -108,17 +133,21 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th colspan="2">{{ call.name }}</th>
+                        <th colspan="2">{{ call.call.name }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
+                        <th>ID</th>
+                        <td>{{ call.call.id }}</td>
+                    </tr>
+                    <tr>
                         <th>Arguments</th>
-                        <td>{{ dump(call.arguments) }}</td>
+                        <td>{{ dump(call.call.arguments) }}</td>
                     </tr>
                     <tr>
                         <th>Response</th>
-                        <td>{{ call.response }}</td>
+                        <td>{{ call.result|nl2br }}</td>
                     </tr>
                 </tbody>
             </table>

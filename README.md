@@ -8,7 +8,7 @@ Symfony integration bundle for [php-llm/llm-chain](https://github.com/php-llm/ll
 composer require php-llm/llm-chain-bundle:@dev php-llm/llm-chain:@dev
 ```
 
-## Example Configuration
+## Configuration
 
 ```yaml
 # config/packages/llm_chain.yaml
@@ -51,7 +51,7 @@ llm_chain:
             api_version: '2024-07-01'
 ```
 
-## Usage
+## Features
 
 ### Simple Chat
 
@@ -72,7 +72,7 @@ final readonly class MyService
         $messages[] = Message::forSystem('Speak like a pirate.');
         $messages[] = Message::ofUser($message);
         
-        return $this->chat->send($message);
+        return $this->chat->send($messages);
     }
 }
 ```
@@ -95,11 +95,9 @@ final readonly class MyService
     public function processMessage(string $message): void
     {
         $messages = $this->loadMessageBag();
-        $message = Message::ofUser($message);
+        $messages[] = Message::ofUser($message);
 
-        $response = $this->toolChain->call($message, $messages);
-
-        $messages[] = $message;
+        $response = $this->toolChain->call($messages);
         $messages[] = Message::ofAssistant($response);
 
         $this->saveMessages($messages);
@@ -119,3 +117,7 @@ final class CompanyName
     }
 }
 ```
+
+### Profiler
+
+![Profiler](./profiler.png)

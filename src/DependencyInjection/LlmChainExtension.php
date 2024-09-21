@@ -16,9 +16,13 @@ use PhpLlm\LlmChain\Store\ChromaDb\Store as ChromaDbStore;
 use PhpLlm\LlmChain\Store\StoreInterface;
 use PhpLlm\LlmChain\Store\VectorStoreInterface;
 use PhpLlm\LlmChain\ToolBox\AsTool;
+use PhpLlm\LlmChainBundle\DataCollector;
+use PhpLlm\LlmChainBundle\TraceableLanguageModel;
+use PhpLlm\LlmChainBundle\TraceableToolRegistry;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
@@ -69,6 +73,11 @@ final class LlmChainExtension extends Extension
                 'method' => $attribute->method,
             ]);
         });
+
+        if (false === $container->getParameter('kernel.debug')) {
+            $container->removeDefinition(DataCollector::class);
+            $container->removeDefinition(TraceableToolRegistry::class);
+        }
     }
 
     private function processRuntimeConfig(string $name, array $runtime, ContainerBuilder $container): void
@@ -103,6 +112,15 @@ final class LlmChainExtension extends Extension
         $definition->replaceArgument('$runtime', new Reference($runtime));
 
         $container->setDefinition('llm_chain.llm.'.$name, $definition);
+
+        if ($container->getParameter('kernel.debug')) {
+            $traceable = new Definition(TraceableLanguageModel::class);
+            $traceable->setDecoratedService('llm_chain.llm.'.$name);
+            $traceable->addTag('llm_chain.traceable_llm');
+            $traceable->setArgument('$llm', new Reference('llm_chain.llm.'.$name.'.debug.inner'));
+            $traceable->setArgument('$name', $name);
+            $container->setDefinition('llm_chain.llm.'.$name.'.debug', $traceable);
+        }
     }
 
     private function processEmbeddingsConfig(string $name, mixed $embeddings, ContainerBuilder $container): void

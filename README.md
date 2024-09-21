@@ -51,9 +51,9 @@ llm_chain:
             api_version: '2024-07-01'
 ```
 
-## Features
+## Usage
 
-### Simple Chat
+### Chain Service
 
 Use the simple chat service to leverage GPT:
 ```php
@@ -62,7 +62,7 @@ use PhpLlm\LlmChain\Chat;
 final readonly class MyService
 {
     public function __construct(
-        private Chat $chat,
+        private Chain $chain,
     ) {
     }
     
@@ -72,39 +72,14 @@ final readonly class MyService
         $messages[] = Message::forSystem('Speak like a pirate.');
         $messages[] = Message::ofUser($message);
         
-        return $this->chat->send($messages);
+        return $this->chain->call($messages);
     }
 }
 ```
 
-### Tool Chain
+### Register Tools
 
-Use the tool chain service to leverage tool calling with GPT:
-```php
-use PhpLlm\LlmChain\Message\Message;
-use PhpLlm\LlmChain\Message\MessageBag;
-use PhpLlm\LlmChain\ToolChain;
-
-final readonly class MyService
-{
-    public function __construct(
-        private ToolChain $toolChain,
-    ) {
-    }
-    
-    public function processMessage(string $message): void
-    {
-        $messages = $this->loadMessageBag();
-        $messages[] = Message::ofUser($message);
-
-        $response = $this->toolChain->call($messages);
-        $messages[] = Message::ofAssistant($response);
-
-        $this->saveMessages($messages);
-    }
-}
-```
-Extend the tool chain service to add your own tools:
+You can register tools by using the `AsTool` attribute and enable the chain to execute it:
 ```php
 use PhpLlm\LlmChain\ToolBox\AsTool;
 
@@ -119,5 +94,7 @@ final class CompanyName
 ```
 
 ### Profiler
+
+The profiler panel provides insights into the chain's execution:
 
 ![Profiler](./profiler.png)

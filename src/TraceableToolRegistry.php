@@ -24,14 +24,13 @@ final class TraceableToolRegistry implements RegistryInterface
 
     public function execute(ToolCall $toolCall): string
     {
-        $response = $this->toolRegistry->execute($toolCall);
+        $result = $this->toolRegistry->execute($toolCall);
 
         $this->calls[] = [
-            'name' => $toolCall->name,
-            'arguments' => $toolCall->arguments,
-            'response' => $response,
+            'call' => $toolCall,
+            'result' => $result,
         ];
 
-        return $response;
+        return $result;
     }
 }

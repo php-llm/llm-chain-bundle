@@ -1,0 +1,131 @@
+{% extends '@WebProfiler/Profiler/layout.html.twig' %}
+
+{% block toolbar %}
+    {% set icon %}
+        {{ include('@LlmChain/icon.svg', { y: 18 }) }}
+        <span class="sf-toolbar-value">{{ collector.llmCallCount }}</span>
+        <span class="sf-toolbar-info-piece-additional-detail">
+            <span class="sf-toolbar-label">calls</span>
+        </span>
+    {% endset %}
+
+    {% set text %}
+        <div class="sf-toolbar-info-piece">
+            <div class="sf-toolbar-info-piece">
+                <b>LLM Calls</b>
+                <span>{{ collector.llmCallCount }}</span>
+            </div>
+            <div class="sf-toolbar-info-piece">
+                <b>Tool Calls</b>
+                <span>{{ collector.toolCalls|length }}</span>
+            </div>
+        </div>
+    {% endset %}
+
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', { 'link': true }) }}
+{% endblock %}
+
+{% block menu %}
+    <span class="label">
+        <span class="icon">{{ include('@LlmChain/icon.svg', { y: 16 }) }}</span>
+        <strong>LlmChain</strong>
+        <span class="count">{{ collector.llmCallCount }}</span>
+    </span>
+{% endblock %}
+
+{% block panel %}
+    <h2>LlmChain</h2>
+    <section class="metrics">
+        <div class="metric-group">
+            <div class="metric">
+                <span class="value">{{ collector.llmCallCount }}</span>
+                <span class="label">LLM Calls</span>
+            </div>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-group">
+            <div class="metric">
+                <span class="value">{{ collector.tools|length }}</span>
+                <span class="label">Registered Tools</span>
+            </div>
+            <div class="metric">
+                <span class="value">{{ collector.toolCalls|length }}</span>
+                <span class="label">Tool Calls</span>
+            </div>
+        </div>
+    </section>
+    <h3>LLM Calls</h3>
+    {% if collector.llmCallCount %}
+        <div class="sf-tabs">
+            {% for llm, calls in collector.llmCalls %}
+                <div class="tab {{ calls|length == 0 ? 'disabled' }}">
+                    <h3 class="tab-title">{{ llm }} <span class="badge">{{ calls|length }}</span></h3>
+                    <div class="tab-content">
+                        {% for call in calls %}
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2">Call {{ loop.index }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th>Messages</th>
+                                        <td>
+                                            <ol>
+                                                {% for message in call.messages %}
+                                                    <li>
+                                                        <strong>{{ message.role.value|title }}:</strong>
+                                                        {{ message.hasFunctionCall ? dump(message.functionCall) : message.content }}
+                                                    </li>
+                                                {% endfor %}
+                                            </ol>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Options</th>
+                                        <td>{{ dump(call.options) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Response</th>
+                                        <td>{{ dump(call.response) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty">
+            <p>No LLM calls were made.</p>
+        </div>
+    {% endif %}
+    <h3>Tool Calls</h3>
+    {% if collector.toolCalls|length %}
+        {% for call in collector.toolCalls %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th colspan="2">{{ call.name }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>Arguments</th>
+                        <td>{{ call.arguments }}</td>
+                    </tr>
+                    <tr>
+                        <th>Response</th>
+                        <td>{{ call.response }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        {% endfor %}
+    {% else %}
+        <div class="empty">
+            <p>No tool calls were made.</p>
+        </div>
+    {% endif %}
+{% endblock %}

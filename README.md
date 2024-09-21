@@ -41,10 +41,10 @@ llm_chain:
             runtime: 'openai'
     stores:
         chroma_db:
-            type: 'chroma-db'
+            engine: 'chroma-db'
             collection_name: '%env(CHROMA_COLLECTION)%'
         azure_search:
-            type: 'azure-search'
+            engine: 'azure-search'
             api_key: '%env(AZURE_SEARCH_KEY)%' 
             endpoint: '%env(AZURE_SEARCH_ENDPOINT)%'
             index_name: '%env(AZURE_SEARCH_INDEX)%' 
@@ -90,7 +90,9 @@ services:
     PhpLlm\LlmChain\ToolBox\Tool\OpenMeteo: ~
     PhpLlm\LlmChain\ToolBox\Tool\SerpApi:
         $apiKey: '%env(SERP_API_KEY)%'
+    PhpLlm\LlmChain\ToolBox\Tool\SimilaritySearch: ~
     PhpLlm\LlmChain\ToolBox\Tool\Wikipedia: ~
+    PhpLlm\LlmChain\ToolBox\Tool\YouTubeTranscriber: ~
 ```
 
 Custom tools can be registered by using the `AsTool` attribute:

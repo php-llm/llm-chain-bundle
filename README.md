@@ -79,7 +79,21 @@ final readonly class MyService
 
 ### Register Tools
 
-You can register tools by using the `AsTool` attribute and enable the chain to execute it:
+To use existing tools, you can register them as a service:
+```yaml
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    PhpLlm\LlmChain\ToolBox\Tool\Clock: ~
+    PhpLlm\LlmChain\ToolBox\Tool\OpenMeteo: ~
+    PhpLlm\LlmChain\ToolBox\Tool\SerpApi:
+        $apiKey: '%env(SERP_API_KEY)%'
+    PhpLlm\LlmChain\ToolBox\Tool\Wikipedia: ~
+```
+
+Custom tools can be registered by using the `AsTool` attribute:
 ```php
 use PhpLlm\LlmChain\ToolBox\AsTool;
 

@@ -12,12 +12,20 @@
     {% set text %}
         <div class="sf-toolbar-info-piece">
             <div class="sf-toolbar-info-piece">
-                <b>LLM Calls</b>
-                <span>{{ collector.llmCallCount }}</span>
+                <b class="label">Configured LLMs</b>
+                <span class="sf-toolbar-status">{{ collector.llmCalls|length }}</span>
             </div>
             <div class="sf-toolbar-info-piece">
-                <b>Tool Calls</b>
-                <span>{{ collector.toolCalls|length }}</span>
+                <b class="label">LLM Calls</b>
+                <span class="sf-toolbar-status">{{ collector.llmCallCount }}</span>
+            </div>
+            <div class="sf-toolbar-info-piece">
+                <b class="label">Registered Tools</b>
+                <span class="sf-toolbar-status">{{ collector.tools|length }}</span>
+            </div>
+            <div class="sf-toolbar-info-piece">
+                <b class="label">Tool Calls</b>
+                <span class="sf-toolbar-status">{{ collector.toolCalls|length }}</span>
             </div>
         </div>
     {% endset %}
@@ -34,7 +42,7 @@
 {% endblock %}
 
 {% macro tool_calls(toolCalls) %}
-    Tool call(s):
+    Tool call{{ toolCalls|length > 1 ? 's' }}:
     <ul>
         {% for toolCall in toolCalls %}
             <li>
@@ -49,6 +57,10 @@
     <h2>LlmChain</h2>
     <section class="metrics">
         <div class="metric-group">
+            <div class="metric">
+                <span class="value">{{ collector.llmCalls|length }}</span>
+                <span class="label">Configured LLMs</span>
+            </div>
             <div class="metric">
                 <span class="value">{{ collector.llmCallCount }}</span>
                 <span class="label">LLM Calls</span>
@@ -106,7 +118,17 @@
                                         <td>
                                             <ul>
                                                 {% for key, value in call.options %}
-                                                    <li>{{ key }}: {{ dump(value) }}</li>
+                                                    {% if key == 'tools' %}
+                                                        <li>{{ key }}:
+                                                            <ul>
+                                                                {% for tool in value %}
+                                                                    <li>{{ tool.name }}</li>
+                                                                {% endfor %}
+                                                            </ul>
+                                                        </li>
+                                                    {% else %}
+                                                        <li>{{ key }}: {{ dump(value) }}</li>
+                                                    {% endif %}
                                                 {% endfor %}
                                             </ul>
                                         </td>
@@ -127,6 +149,48 @@
             <p>No LLM calls were made.</p>
         </div>
     {% endif %}
+
+    <h3>Tools</h3>
+    {% if collector.tools|length %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Class & Method</th>
+                    <th>Parameters</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tool in collector.tools %}
+                    <tr>
+                        <th>{{ tool.name }}</th>
+                        <td>{{ tool.description }}</td>
+                        <td>{{ tool.className }}::{{ tool.method }}</td>
+                        <td>
+                            {% if tool.parameters %}
+                                <ul>
+                                    {% for name, parameter in tool.parameters.properties %}
+                                        <li>
+                                            <strong>{{ name }} ({{ parameter.type }})</strong><br />
+                                            <i>{{ parameter.description }}</i>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <i>none</i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty">
+            <p>No tools were registered.</p>
+        </div>
+    {% endif %}
+
     <h3>Tool Calls</h3>
     {% if collector.toolCalls|length %}
         {% for call in collector.toolCalls %}

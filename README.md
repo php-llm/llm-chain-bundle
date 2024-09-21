@@ -94,7 +94,7 @@ final readonly class MyService
     
     public function processMessage(string $message): void
     {
-        $messages = $this->loadMessageBad();
+        $messages = $this->loadMessageBag();
         $message = Message::ofUser($message);
 
         $response = $this->toolChain->call($message, $messages);
@@ -109,19 +109,13 @@ final readonly class MyService
 Extend the tool chain service to add your own tools:
 ```php
 use PhpLlm\LlmChain\ToolBox\AsTool;
-use Symfony\Component\Clock\ClockInterface;
 
-#[AsTool('clock', 'Provides the current date and time')]
-final class Clock
+#[AsTool('company_name', 'Provides the name of your company')]
+final class CompanyName
 {
-    public function __construct(
-        private readonly ClockInterface $clock,
-    ) {
-    }
-
     public function __invoke(): string
     {
-        return $this->clock->now()->format('Y-m-d H:i:s');
+        return 'ACME Corp.'
     }
 }
 ```

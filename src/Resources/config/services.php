@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use PhpLlm\LlmChain\Chat;
+use PhpLlm\LlmChain\Chain;
 use PhpLlm\LlmChain\DocumentEmbedder;
 use PhpLlm\LlmChain\OpenAI\Model\Embeddings;
 use PhpLlm\LlmChain\OpenAI\Model\Gpt;
@@ -15,7 +15,6 @@ use PhpLlm\LlmChain\ToolBox\ParameterAnalyzer;
 use PhpLlm\LlmChain\ToolBox\Registry;
 use PhpLlm\LlmChain\ToolBox\RegistryInterface;
 use PhpLlm\LlmChain\ToolBox\ToolAnalyzer;
-use PhpLlm\LlmChain\ToolChain;
 use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
 use PhpLlm\LlmChain\Store\ChromaDb\Store as ChromaDbStore;
 use PhpLlm\LlmChainBundle\DataCollector;
@@ -27,9 +26,9 @@ return static function (ContainerConfigurator $container) {
             ->autowire()
             ->autoconfigure()
 
-        // chains
-        ->set(Chat::class)
-        ->set(ToolChain::class)
+        // high level feature
+        ->set(Chain::class)
+        ->set(DocumentEmbedder::class)
 
         // runtimes
         ->set(AzureRuntime::class)
@@ -72,9 +71,6 @@ return static function (ContainerConfigurator $container) {
             ->args([
                 '$collectionName' => abstract_arg('Name of ChromaDB collection'),
             ])
-
-        // embedder
-        ->set(DocumentEmbedder::class)
 
         // tools
         ->set(Registry::class)

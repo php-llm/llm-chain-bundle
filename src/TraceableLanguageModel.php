@@ -6,6 +6,7 @@ namespace PhpLlm\LlmChainBundle;
 
 use PhpLlm\LlmChain\LanguageModel;
 use PhpLlm\LlmChain\Message\MessageBag;
+use PhpLlm\LlmChain\Response\Response;
 
 final class TraceableLanguageModel implements LanguageModel
 {
@@ -17,7 +18,7 @@ final class TraceableLanguageModel implements LanguageModel
     ) {
     }
 
-    public function call(MessageBag $messages, array $options = []): array
+    public function call(MessageBag $messages, array $options = []): Response
     {
         $response = $this->llm->call($messages, $options);
 
@@ -28,6 +29,16 @@ final class TraceableLanguageModel implements LanguageModel
         ];
 
         return $response;
+    }
+
+    public function hasToolSupport(): bool
+    {
+        return $this->llm->hasToolSupport();
+    }
+
+    public function hasStructuredOutputSupport(): bool
+    {
+        return $this->llm->hasStructuredOutputSupport();
     }
 
     public function getName(): string

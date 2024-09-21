@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle;
 
+use PhpLlm\LlmChain\Response\ToolCall;
 use PhpLlm\LlmChain\ToolBox\Registry;
 use PhpLlm\LlmChain\ToolBox\RegistryInterface;
 
@@ -21,13 +22,13 @@ final class TraceableToolRegistry implements RegistryInterface
         return $this->toolRegistry->getMap();
     }
 
-    public function execute(string $name, string $arguments): string
+    public function execute(ToolCall $toolCall): string
     {
-        $response = $this->toolRegistry->execute($name, $arguments);
+        $response = $this->toolRegistry->execute($toolCall);
 
         $this->calls[] = [
-            'name' => $name,
-            'arguments' => $arguments,
+            'name' => $toolCall->name,
+            'arguments' => $toolCall->arguments,
             'response' => $response,
         ];
 

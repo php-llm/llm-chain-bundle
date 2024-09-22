@@ -55,7 +55,7 @@ llm_chain:
 
 ### Chain Service
 
-Use the simple chat service to leverage GPT:
+Use the chain service to leverage GPT:
 ```php
 use PhpLlm\LlmChain\Chat;
 

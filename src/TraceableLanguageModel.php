@@ -8,8 +8,18 @@ use PhpLlm\LlmChain\LanguageModel;
 use PhpLlm\LlmChain\Message\MessageBag;
 use PhpLlm\LlmChain\Response\Response;
 
+/**
+ * @phpstan-type LlmCallData array{
+ *     messages: MessageBag,
+ *     options: array<string, mixed>,
+ *     response: Response,
+ * }
+ */
 final class TraceableLanguageModel implements LanguageModel
 {
+    /**
+     * @var list<LlmCallData>
+     */
     public array $calls = [];
 
     public function __construct(
@@ -31,14 +41,14 @@ final class TraceableLanguageModel implements LanguageModel
         return $response;
     }
 
-    public function hasToolSupport(): bool
+    public function supportsToolCalling(): bool
     {
-        return $this->llm->hasToolSupport();
+        return $this->llm->supportsToolCalling();
     }
 
-    public function hasStructuredOutputSupport(): bool
+    public function supportsStructuredOutput(): bool
     {
-        return $this->llm->hasStructuredOutputSupport();
+        return $this->llm->supportsStructuredOutput();
     }
 
     public function getName(): string

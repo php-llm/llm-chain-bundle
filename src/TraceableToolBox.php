@@ -5,15 +5,24 @@ declare(strict_types=1);
 namespace PhpLlm\LlmChainBundle;
 
 use PhpLlm\LlmChain\Response\ToolCall;
-use PhpLlm\LlmChain\ToolBox\Registry;
-use PhpLlm\LlmChain\ToolBox\RegistryInterface;
+use PhpLlm\LlmChain\ToolBox\ToolBox;
+use PhpLlm\LlmChain\ToolBox\ToolBoxInterface;
 
-final class TraceableToolRegistry implements RegistryInterface
+/**
+ * @phpstan-type ToolCallData array{
+ *     call: ToolCall,
+ *     result: string,
+ * }
+ */
+final class TraceableToolBox implements ToolBoxInterface
 {
+    /**
+     * @var list<ToolCallData>
+     */
     public array $calls = [];
 
     public function __construct(
-        private Registry $toolRegistry,
+        private ToolBox $toolRegistry,
     ) {
     }
 

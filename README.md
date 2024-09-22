@@ -95,7 +95,7 @@ services:
     PhpLlm\LlmChain\ToolBox\Tool\YouTubeTranscriber: ~
 ```
 
-Custom tools can be registered by using the `AsTool` attribute:
+Custom tools can be registered by using the `#[AsTool]` attribute:
 ```php
 use PhpLlm\LlmChain\ToolBox\AsTool;
 

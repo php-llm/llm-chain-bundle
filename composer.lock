@@ -59,25 +59,25 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-llm/llm-chain.git",
-                "reference": "bf26c67213320e9b02692de1ae0f2708938cc83f"
+                "reference": "d67c5e76d34397a2abc1570e91d4589c93985cca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-llm/llm-chain/zipball/bf26c67213320e9b02692de1ae0f2708938cc83f",
-                "reference": "bf26c67213320e9b02692de1ae0f2708938cc83f",
+                "url": "https://api.github.com/repos/php-llm/llm-chain/zipball/d67c5e76d34397a2abc1570e91d4589c93985cca",
+                "reference": "d67c5e76d34397a2abc1570e91d4589c93985cca",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1",
+                "php": ">=8.2",
                 "phpdocumentor/reflection-docblock": "^5.4",
                 "psr/cache": "^3.0",
                 "psr/log": "^3.0",
                 "symfony/http-client": "^6.4 || ^7.1",
-                "symfony/property-access": "^7.1",
-                "symfony/property-info": "^7.1",
-                "symfony/serializer": "^7.1",
-                "symfony/type-info": "^7.1",
-                "symfony/uid": "^7.1"
+                "symfony/property-access": "^6.4 || ^7.1",
+                "symfony/property-info": "^6.4 || ^7.1",
+                "symfony/serializer": "^6.4 || ^7.1",
+                "symfony/type-info": "^6.4 || ^7.1",
+                "symfony/uid": "^6.4 || ^7.1"
             },
             "require-dev": {
                 "codewithkyrian/chromadb-php": "^0.2.1",
@@ -87,12 +87,16 @@
                 "probots-io/pinecone-php": "^1.0",
                 "symfony/clock": "^6.4 || ^7.1",
                 "symfony/console": "^6.4 || ^7.1",
+                "symfony/css-selector": "^6.4 || ^7.1",
+                "symfony/dom-crawler": "^6.4 || ^7.1",
                 "symfony/var-dumper": "^6.4 || ^7.1"
             },
             "suggest": {
                 "codewithkyrian/chromadb-php": "For using the ChromaDB as retrieval vector store.",
                 "probots-io/pinecone-php": "For using the Pinecone as retrieval vector store.",
-                "symfony/clock": "For using the clock tool."
+                "symfony/clock": "For using the clock tool.",
+                "symfony/css-selector": "For using the YouTube transcription tool.",
+                "symfony/dom-crawler": "For using the YouTube transcription tool."
             },
             "default-branch": true,
             "type": "library",
@@ -116,7 +120,7 @@
                 "issues": "https://github.com/php-llm/llm-chain/issues",
                 "source": "https://github.com/php-llm/llm-chain/tree/main"
             },
-            "time": "2024-09-21T07:53:34+00:00"
+            "time": "2024-09-21T23:45:37+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -3168,7 +3172,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {
+        "php-llm/llm-chain": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

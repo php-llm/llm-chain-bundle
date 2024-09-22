@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle;
 
+use PhpLlm\LlmChain\ToolBox\Metadata;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * @phpstan-import-type LlmCallData from TraceableLanguageModel
+ * @phpstan-import-type ToolCallData from TraceableToolBox
+ */
 final class DataCollector extends AbstractDataCollector
 {
     /**
@@ -22,7 +27,7 @@ final class DataCollector extends AbstractDataCollector
     public function __construct(
         #[AutowireIterator('llm_chain.traceable_llm')]
         iterable $llms,
-        private TraceableToolRegistry $toolRegistry,
+        private TraceableToolBox $toolBox,
     ) {
         $this->llms = $llms instanceof \Traversable ? iterator_to_array($llms) : $llms;
     }
@@ -35,9 +40,9 @@ final class DataCollector extends AbstractDataCollector
         }
 
         $this->data = [
-            'tools' => $this->toolRegistry->getMap(),
+            'tools' => $this->toolBox->getMap(),
             'llm_calls' => $llmCalls,
-            'tool_calls' => $this->toolRegistry->calls,
+            'tool_calls' => $this->toolBox->calls,
         ];
     }
 
@@ -46,7 +51,9 @@ final class DataCollector extends AbstractDataCollector
         return '@LlmChain/data_collector.html.twig';
     }
 
-
+    /**
+     * @return list<LlmCallData>
+     */
     public function getLlmCalls(): array
     {
         return $this->data['llm_calls'] ?? [];
@@ -57,11 +64,17 @@ final class DataCollector extends AbstractDataCollector
         return array_sum(array_map('count', $this->data['llm_calls'] ?? []));
     }
 
+    /**
+     * @return Metadata[]
+     */
     public function getTools(): array
     {
         return $this->data['tools'] ?? [];
     }
 
+    /**
+     * @return list<ToolCallData>
+     */
     public function getToolCalls(): array
     {
         return $this->data['tool_calls'] ?? [];

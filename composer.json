@@ -22,5 +22,9 @@
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "require-dev": {
+        "php-cs-fixer/shim": "^3.64",
+        "phpstan/phpstan": "^1.12"
+    }
 }

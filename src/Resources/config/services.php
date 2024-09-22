@@ -11,14 +11,14 @@ use PhpLlm\LlmChain\OpenAI\Model\Gpt;
 use PhpLlm\LlmChain\OpenAI\Runtime;
 use PhpLlm\LlmChain\OpenAI\Runtime\Azure as AzureRuntime;
 use PhpLlm\LlmChain\OpenAI\Runtime\OpenAI as OpenAIRuntime;
-use PhpLlm\LlmChain\ToolBox\ParameterAnalyzer;
-use PhpLlm\LlmChain\ToolBox\Registry;
-use PhpLlm\LlmChain\ToolBox\RegistryInterface;
-use PhpLlm\LlmChain\ToolBox\ToolAnalyzer;
 use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
 use PhpLlm\LlmChain\Store\ChromaDb\Store as ChromaDbStore;
+use PhpLlm\LlmChain\ToolBox\ParameterAnalyzer;
+use PhpLlm\LlmChain\ToolBox\ToolAnalyzer;
+use PhpLlm\LlmChain\ToolBox\ToolBox;
+use PhpLlm\LlmChain\ToolBox\ToolBoxInterface;
 use PhpLlm\LlmChainBundle\DataCollector;
-use PhpLlm\LlmChainBundle\TraceableToolRegistry;
+use PhpLlm\LlmChainBundle\TraceableToolBox;
 
 return static function (ContainerConfigurator $container) {
     $container->services()
@@ -73,17 +73,17 @@ return static function (ContainerConfigurator $container) {
             ])
 
         // tools
-        ->set(Registry::class)
+        ->set(ToolBox::class)
             ->args([
                 '$tools' => tagged_iterator('llm_chain.tool'),
             ])
-            ->alias(RegistryInterface::class, Registry::class)
+            ->alias(ToolBoxInterface::class, ToolBox::class)
         ->set(ToolAnalyzer::class)
         ->set(ParameterAnalyzer::class)
 
         // profiler
         ->set(DataCollector::class)
-        ->set(TraceableToolRegistry::class)
-            ->decorate(Registry::class)
+        ->set(TraceableToolBox::class)
+            ->decorate(ToolBox::class)
     ;
 };

@@ -18,7 +18,7 @@ use PhpLlm\LlmChain\Store\VectorStoreInterface;
 use PhpLlm\LlmChain\ToolBox\AsTool;
 use PhpLlm\LlmChainBundle\DataCollector;
 use PhpLlm\LlmChainBundle\TraceableLanguageModel;
-use PhpLlm\LlmChainBundle\TraceableToolRegistry;
+use PhpLlm\LlmChainBundle\TraceableToolBox;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -37,33 +37,33 @@ final class LlmChainExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        foreach ($config['runtimes'] as $name => $runtime) {
-            $this->processRuntimeConfig($name, $runtime, $container);
+        foreach ($config['runtimes'] as $runtimeName => $runtime) {
+            $this->processRuntimeConfig($runtimeName, $runtime, $container);
         }
-        if (1 === count($config['runtimes'])) {
-            $container->setAlias(Runtime::class, 'llm_chain.runtime.'.$name);
-        }
-
-        foreach ($config['llms'] as $name => $llm) {
-            $this->processLlmConfig($name, $llm, $container);
-        }
-        if (1 === count($config['llms'])) {
-            $container->setAlias(LanguageModel::class, 'llm_chain.llm.'.$name);
+        if (1 === count($config['runtimes']) && isset($runtimeName)) {
+            $container->setAlias(Runtime::class, 'llm_chain.runtime.'.$runtimeName);
         }
 
-        foreach ($config['embeddings'] as $name => $embeddings) {
-            $this->processEmbeddingsConfig($name, $embeddings, $container);
+        foreach ($config['llms'] as $llmName => $llm) {
+            $this->processLlmConfig($llmName, $llm, $container);
         }
-        if (1 === count($config['embeddings'])) {
-            $container->setAlias(EmbeddingModel::class, 'llm_chain.embeddings.'.$name);
+        if (1 === count($config['llms']) && isset($llmName)) {
+            $container->setAlias(LanguageModel::class, 'llm_chain.llm.'.$llmName);
         }
 
-        foreach ($config['stores'] as $name => $store) {
-            $this->processStoreConfig($name, $store, $container);
+        foreach ($config['embeddings'] as $embeddingsName => $embeddings) {
+            $this->processEmbeddingsConfig($embeddingsName, $embeddings, $container);
         }
-        if (1 === count($config['stores'])) {
-            $container->setAlias(VectorStoreInterface::class, 'llm_chain.store.'.$name);
-            $container->setAlias(StoreInterface::class, 'llm_chain.store.'.$name);
+        if (1 === count($config['embeddings']) && isset($embeddingsName)) {
+            $container->setAlias(EmbeddingModel::class, 'llm_chain.embeddings.'.$embeddingsName);
+        }
+
+        foreach ($config['stores'] as $storeName => $store) {
+            $this->processStoreConfig($storeName, $store, $container);
+        }
+        if (1 === count($config['stores']) && isset($storeName)) {
+            $container->setAlias(VectorStoreInterface::class, 'llm_chain.store.'.$storeName);
+            $container->setAlias(StoreInterface::class, 'llm_chain.store.'.$storeName);
         }
 
         $container->registerAttributeForAutoconfiguration(AsTool::class, static function (ChildDefinition $definition, AsTool $attribute): void {
@@ -76,10 +76,13 @@ final class LlmChainExtension extends Extension
 
         if (false === $container->getParameter('kernel.debug')) {
             $container->removeDefinition(DataCollector::class);
-            $container->removeDefinition(TraceableToolRegistry::class);
+            $container->removeDefinition(TraceableToolBox::class);
         }
     }
 
+    /**
+     * @param array<string, mixed> $runtime
+     */
     private function processRuntimeConfig(string $name, array $runtime, ContainerBuilder $container): void
     {
         if ('openai' === $runtime['type']) {
@@ -104,6 +107,9 @@ final class LlmChainExtension extends Extension
         }
     }
 
+    /**
+     * @param array<string, mixed> $llm
+     */
     private function processLlmConfig(string $name, array $llm, ContainerBuilder $container): void
     {
         $runtime = isset($llm['runtime']) ? 'llm_chain.runtime.'.$llm['runtime'] : Runtime::class;
@@ -123,7 +129,10 @@ final class LlmChainExtension extends Extension
         }
     }
 
-    private function processEmbeddingsConfig(string $name, mixed $embeddings, ContainerBuilder $container): void
+    /**
+     * @param array<string, mixed> $embeddings
+     */
+    private function processEmbeddingsConfig(string $name, array $embeddings, ContainerBuilder $container): void
     {
         $runtime = isset($embeddings['runtime']) ? 'llm_chain.runtime.'.$embeddings['runtime'] : Runtime::class;
 
@@ -133,7 +142,10 @@ final class LlmChainExtension extends Extension
         $container->setDefinition('llm_chain.embeddings.'.$name, $definition);
     }
 
-    private function processStoreConfig(string $name, mixed $stores, ContainerBuilder $container): void
+    /**
+     * @param array<string, mixed> $stores
+     */
+    private function processStoreConfig(string $name, array $stores, ContainerBuilder $container): void
     {
         if ('chroma-db' === $stores['engine']) {
             $definition = new ChildDefinition(ChromaDbStore::class);

@@ -5,7 +5,7 @@ Symfony integration bundle for [php-llm/llm-chain](https://github.com/php-llm/ll
 ## Installation
 
 ```bash
-composer require php-llm/llm-chain-bundle:@dev php-llm/llm-chain:@dev
+composer require php-llm/llm-chain-bundle
 ```
 
 ## Configuration

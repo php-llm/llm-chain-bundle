@@ -8,9 +8,9 @@ use PhpLlm\LlmChain\Chain;
 use PhpLlm\LlmChain\DocumentEmbedder;
 use PhpLlm\LlmChain\OpenAI\Model\Embeddings;
 use PhpLlm\LlmChain\OpenAI\Model\Gpt;
-use PhpLlm\LlmChain\OpenAI\Runtime;
-use PhpLlm\LlmChain\OpenAI\Runtime\Azure as AzureRuntime;
-use PhpLlm\LlmChain\OpenAI\Runtime\OpenAI as OpenAIRuntime;
+use PhpLlm\LlmChain\OpenAI\Platform;
+use PhpLlm\LlmChain\OpenAI\Platform\Azure as AzurePlatform;
+use PhpLlm\LlmChain\OpenAI\Platform\OpenAI as OpenAIPlatform;
 use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
 use PhpLlm\LlmChain\Store\ChromaDb\Store as ChromaDbStore;
 use PhpLlm\LlmChain\ToolBox\ParameterAnalyzer;
@@ -30,8 +30,8 @@ return static function (ContainerConfigurator $container) {
         ->set(Chain::class)
         ->set(DocumentEmbedder::class)
 
-        // runtimes
-        ->set(AzureRuntime::class)
+        // platforms
+        ->set(AzurePlatform::class)
             ->abstract()
             ->args([
                 '$baseUrl' => abstract_arg('Base URL for Azure API'),
@@ -39,7 +39,7 @@ return static function (ContainerConfigurator $container) {
                 '$apiVersion' => abstract_arg('API version for Azure API'),
                 '$key' => abstract_arg('API key for Azure API'),
             ])
-        ->set(OpenAIRuntime::class)
+        ->set(OpenAIPlatform::class)
             ->abstract()
             ->args([
                 '$apiKey' => abstract_arg('API key for OpenAI API'),
@@ -49,12 +49,12 @@ return static function (ContainerConfigurator $container) {
         ->set(Gpt::class)
             ->abstract()
             ->args([
-                '$runtime' => service(Runtime::class),
+                '$platform' => service(Platform::class),
             ])
         ->set(Embeddings::class)
             ->abstract()
             ->args([
-                '$runtime' => service(Runtime::class),
+                '$platform' => service(Platform::class),
             ])
 
         // stores

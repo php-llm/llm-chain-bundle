@@ -13,7 +13,7 @@ composer require php-llm/llm-chain-bundle
 ```yaml
 # config/packages/llm_chain.yaml
 llm_chain:
-    runtimes:
+    platforms:
         azure_gpt:
             type: 'azure'
             base_url: '%env(AZURE_OPENAI_BASEURL)%'
@@ -31,14 +31,14 @@ llm_chain:
             api_key: '%env(OPENAI_API_KEY)%'
     llms:
         azure_gpt:
-            runtime: 'azure_gpt'
+            platform: 'azure_gpt'
         original_gpt:
-            runtime: 'openai'
+            platform: 'openai'
     embeddings:
         azure_embeddings:
-            runtime: 'azure_embeddings'
+            platform: 'azure_embeddings'
         original_embeddings:
-            runtime: 'openai'
+            platform: 'openai'
     stores:
         chroma_db:
             engine: 'chroma-db'

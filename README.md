@@ -31,14 +31,14 @@ llm_chain:
             api_key: '%env(OPENAI_API_KEY)%'
     llms:
         azure_gpt:
-            runtime: 'azure_gpt'
+            platform: 'azure_gpt'
         original_gpt:
-            runtime: 'openai'
+            platform: 'openai'
     embeddings:
         azure_embeddings:
-            runtime: 'azure_embeddings'
+            platform: 'azure_embeddings'
         original_embeddings:
-            runtime: 'openai'
+            platform: 'openai'
     stores:
         chroma_db:
             engine: 'chroma-db'

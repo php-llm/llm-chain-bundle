@@ -100,11 +100,19 @@
                                                 {% for message in call.messages %}
                                                     <li>
                                                         <strong>{{ message.role.value|title }}:</strong>
-                                                        {% if message.hasToolCalls and 'assistant' == message.role.value %}
+                                                        {% if 'assistant' == message.role.value and message.hasToolCalls%}
                                                             {{ _self.tool_calls(message.toolCalls) }}
-                                                        {% elseif message.hasToolCalls and 'tool' == message.role.value %}
-                                                            <i>Result of tool call with ID {{ message.toolCalls[0].id }}</i><br />
+                                                        {% elseif 'tool' == message.role.value %}
+                                                            <i>Result of tool call with ID {{ message.toolCall.id }}</i><br />
                                                             {{ message.content|nl2br }}
+                                                        {% elseif 'user' == message.role.value %}
+                                                            {% for item in message.content %}
+                                                                {% if item.text %}
+                                                                    {{ item.text|nl2br }}
+                                                                {% else %}
+                                                                    <img src="{{ item.url }}" />
+                                                                {% endif %}
+                                                            {% endfor %}
                                                         {% else %}
                                                             {{ message.content|nl2br }}
                                                         {% endif %}

@@ -13,7 +13,7 @@ composer require php-llm/llm-chain-bundle
 ```yaml
 # config/packages/llm_chain.yaml
 llm_chain:
-    runtimes:
+    platforms:
         azure_gpt:
             type: 'azure'
             base_url: '%env(AZURE_OPENAI_BASEURL)%'

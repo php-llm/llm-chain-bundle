@@ -55,7 +55,7 @@ llm_chain:
 
 ### Chain Service
 
-Use the chain service to leverage GPT:
+Use the `Chain` service to leverage GPT:
 ```php
 use PhpLlm\LlmChain\Chat;
 
@@ -68,10 +68,11 @@ final readonly class MyService
     
     public function submit(string $message): string
     {
-        $messages = new MessageBag();
-        $messages[] = Message::forSystem('Speak like a pirate.');
-        $messages[] = Message::ofUser($message);
-        
+        $messages = new MessageBag(
+            Message::forSystem('Speak like a pirate.'),
+            Message::ofUser($message),
+        );
+
         return $this->chain->call($messages);
     }
 }

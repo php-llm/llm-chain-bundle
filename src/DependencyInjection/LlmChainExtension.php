@@ -8,9 +8,9 @@ use PhpLlm\LlmChain\EmbeddingModel;
 use PhpLlm\LlmChain\LanguageModel;
 use PhpLlm\LlmChain\OpenAI\Model\Embeddings;
 use PhpLlm\LlmChain\OpenAI\Model\Gpt;
-use PhpLlm\LlmChain\OpenAI\Runtime;
-use PhpLlm\LlmChain\OpenAI\Runtime\Azure as AzureRuntime;
-use PhpLlm\LlmChain\OpenAI\Runtime\OpenAI as OpenAIRuntime;
+use PhpLlm\LlmChain\OpenAI\Platform;
+use PhpLlm\LlmChain\OpenAI\Platform\Azure as AzurePlatform;
+use PhpLlm\LlmChain\OpenAI\Platform\OpenAI as OpenAIPlatform;
 use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
 use PhpLlm\LlmChain\Store\ChromaDb\Store as ChromaDbStore;
 use PhpLlm\LlmChain\Store\StoreInterface;
@@ -37,11 +37,11 @@ final class LlmChainExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        foreach ($config['runtimes'] as $runtimeName => $runtime) {
-            $this->processRuntimeConfig($runtimeName, $runtime, $container);
+        foreach ($config['platforms'] as $platformName => $platform) {
+            $this->processPlatformConfig($platformName, $platform, $container);
         }
-        if (1 === count($config['runtimes']) && isset($runtimeName)) {
-            $container->setAlias(Runtime::class, 'llm_chain.runtime.'.$runtimeName);
+        if (1 === count($config['platforms']) && isset($platformName)) {
+            $container->setAlias(Platform::class, 'llm_chain.platform.'.$platformName);
         }
 
         foreach ($config['llms'] as $llmName => $llm) {
@@ -81,29 +81,29 @@ final class LlmChainExtension extends Extension
     }
 
     /**
-     * @param array<string, mixed> $runtime
+     * @param array<string, mixed> $platform
      */
-    private function processRuntimeConfig(string $name, array $runtime, ContainerBuilder $container): void
+    private function processPlatformConfig(string $name, array $platform, ContainerBuilder $container): void
     {
-        if ('openai' === $runtime['type']) {
-            $definition = new ChildDefinition(OpenAIRuntime::class);
+        if ('openai' === $platform['type']) {
+            $definition = new ChildDefinition(OpenAIPlatform::class);
             $definition
-                ->replaceArgument('$apiKey', $runtime['api_key']);
+                ->replaceArgument('$apiKey', $platform['api_key']);
 
-            $container->setDefinition('llm_chain.runtime.'.$name, $definition);
+            $container->setDefinition('llm_chain.platform.'.$name, $definition);
 
             return;
         }
 
-        if ('azure' === $runtime['type']) {
-            $definition = new ChildDefinition(AzureRuntime::class);
+        if ('azure' === $platform['type']) {
+            $definition = new ChildDefinition(AzurePlatform::class);
             $definition
-                ->replaceArgument('$baseUrl', $runtime['base_url'])
-                ->replaceArgument('$deployment', $runtime['deployment'])
-                ->replaceArgument('$key', $runtime['api_key'])
-                ->replaceArgument('$apiVersion', $runtime['version']);
+                ->replaceArgument('$baseUrl', $platform['base_url'])
+                ->replaceArgument('$deployment', $platform['deployment'])
+                ->replaceArgument('$key', $platform['api_key'])
+                ->replaceArgument('$apiVersion', $platform['version']);
 
-            $container->setDefinition('llm_chain.runtime.'.$name, $definition);
+            $container->setDefinition('llm_chain.platform.'.$name, $definition);
         }
     }
 
@@ -112,10 +112,10 @@ final class LlmChainExtension extends Extension
      */
     private function processLlmConfig(string $name, array $llm, ContainerBuilder $container): void
     {
-        $runtime = isset($llm['runtime']) ? 'llm_chain.runtime.'.$llm['runtime'] : Runtime::class;
+        $platform = isset($llm['platform']) ? 'llm_chain.platform.'.$llm['platform'] : Platform::class;
 
         $definition = new ChildDefinition(Gpt::class);
-        $definition->replaceArgument('$runtime', new Reference($runtime));
+        $definition->replaceArgument('$platform', new Reference($platform));
 
         $container->setDefinition('llm_chain.llm.'.$name, $definition);
 
@@ -134,10 +134,10 @@ final class LlmChainExtension extends Extension
      */
     private function processEmbeddingsConfig(string $name, array $embeddings, ContainerBuilder $container): void
     {
-        $runtime = isset($embeddings['runtime']) ? 'llm_chain.runtime.'.$embeddings['runtime'] : Runtime::class;
+        $platform = isset($embeddings['platform']) ? 'llm_chain.platform.'.$embeddings['platform'] : Platform::class;
 
         $definition = new ChildDefinition(Embeddings::class);
-        $definition->replaceArgument('$runtime', new Reference($runtime));
+        $definition->replaceArgument('$platform', new Reference($platform));
 
         $container->setDefinition('llm_chain.embeddings.'.$name, $definition);
     }

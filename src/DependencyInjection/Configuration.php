@@ -16,7 +16,7 @@ final class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
-                ->arrayNode('runtimes')
+                ->arrayNode('platforms')
                     ->normalizeKeys(false)
                     ->useAttributeAsKey('name')
                     ->arrayPrototype()
@@ -34,7 +34,7 @@ final class Configuration implements ConfigurationInterface
                     ->useAttributeAsKey('name')
                     ->arrayPrototype()
                         ->children()
-                            ->scalarNode('runtime')->end()
+                            ->scalarNode('platform')->end()
                         ->end()
                     ->end()
                 ->end()
@@ -43,7 +43,7 @@ final class Configuration implements ConfigurationInterface
                     ->useAttributeAsKey('name')
                     ->arrayPrototype()
                         ->children()
-                            ->scalarNode('runtime')->end()
+                            ->scalarNode('platform')->end()
                         ->end()
                     ->end()
                 ->end()

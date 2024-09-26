@@ -13,7 +13,7 @@ use PhpLlm\LlmChain\OpenAI\Platform\Azure as AzurePlatform;
 use PhpLlm\LlmChain\OpenAI\Platform\OpenAI as OpenAIPlatform;
 use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
 use PhpLlm\LlmChain\Store\ChromaDB\Store as ChromaDBStore;
-use PhpLlm\LlmChain\Store\MongoDB\SearchStore as MongoDBStore;
+use PhpLlm\LlmChain\Store\MongoDB\Store as MongoDBStore;
 use PhpLlm\LlmChain\ToolBox\ParameterAnalyzer;
 use PhpLlm\LlmChain\ToolBox\ToolAnalyzer;
 use PhpLlm\LlmChain\ToolBox\ToolBox;

@@ -52,15 +52,23 @@ final class Configuration implements ConfigurationInterface
                     ->useAttributeAsKey('name')
                     ->arrayPrototype()
                         ->children()
-                            ->enumNode('engine')->values(['chroma-db', 'azure-search', 'mongodb'])->isRequired()->end()
-                            ->scalarNode('collection_name')->end()
-                            ->scalarNode('api_key')->end()
-                            ->scalarNode('endpoint')->end()
+                            ->enumNode('engine')->values(['azure-search', 'chroma-db', 'mongodb', 'pinecone'])->isRequired()->end()
+                            // Azure AI Search & MongoDB
                             ->scalarNode('index_name')->end()
+                            // Azure AI Search
+                            ->scalarNode('api_key')->end()
                             ->scalarNode('api_version')->end()
+                            ->scalarNode('endpoint')->end()
+                            // ChromaDB & MongoDB
+                            ->scalarNode('collection_name')->end()
+                            // MongoDB
                             ->scalarNode('database_name')->end()
-                            ->scalarNode('vector_field_name')->end()
                             ->booleanNode('bulk_write')->end()
+                            ->scalarNode('vector_field_name')->end()
+                            // Pinecone
+                            ->arrayNode('filter')->end()
+                            ->scalarNode('namespace')->end()
+                            ->scalarNode('top_k')->end()
                         ->end()
                     ->end()
             ->end()

@@ -40,15 +40,15 @@ llm_chain:
         original_embeddings:
             platform: 'openai'
     stores:
+        azure_search:
+            engine: 'azure-search'
+            api_key: '%env(AZURE_SEARCH_KEY)%'
+            endpoint: '%env(AZURE_SEARCH_ENDPOINT)%'
+            index_name: '%env(AZURE_SEARCH_INDEX)%'
+            api_version: '2024-07-01'
         chroma_db:
             engine: 'chroma-db'
             collection_name: '%env(CHROMA_COLLECTION)%'
-        azure_search:
-            engine: 'azure-search'
-            api_key: '%env(AZURE_SEARCH_KEY)%' 
-            endpoint: '%env(AZURE_SEARCH_ENDPOINT)%'
-            index_name: '%env(AZURE_SEARCH_INDEX)%' 
-            api_version: '2024-07-01'
         mongodb:
             engine: 'mongodb'
             database_name: '%env(MONGODB_DATABASE)%'
@@ -56,6 +56,11 @@ llm_chain:
             index_name: '%env(MONGODB_INDEX)%'
             vector_field_name: 'vector'
             bulk_write: false
+        pinecone:
+            engine: 'pinecone'
+            namespace: 'partition'
+            filter: { 'key' : 'value' }
+            top_k: 5
 ```
 
 ## Usage

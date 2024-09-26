@@ -51,7 +51,6 @@ llm_chain:
             api_version: '2024-07-01'
         mongodb:
             engine: 'mongodb'
-            uri: '%env(MONGODB_URI)%'
             database_name: '%env(MONGODB_DATABASE)%'
             collection_name: '%env(MONGODB_COLLECTION)%'
             index_name: '%env(MONGODB_INDEX)%'

@@ -52,7 +52,7 @@ final class Configuration implements ConfigurationInterface
                     ->useAttributeAsKey('name')
                     ->arrayPrototype()
                         ->children()
-                            ->enumNode('engine')->values(['chroma-db', 'azure-search'])->isRequired()->end()
+                            ->enumNode('engine')->values(['chroma-db', 'azure-search', 'mongodb'])->isRequired()->end()
                             ->scalarNode('collection_name')->end()
                             ->scalarNode('api_key')->end()
                             ->scalarNode('endpoint')->end()

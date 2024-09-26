@@ -169,7 +169,7 @@ final class LlmChainExtension extends Extension
         if ('mongodb' === $stores['engine']) {
             $definition = new ChildDefinition(MongoDBStore::class);
             $definition
-                ->replaceArgument('$dsn', $stores['dsn'])
+                ->replaceArgument('$uri', $stores['uri'])
                 ->replaceArgument('$databaseName', $stores['databaseName'])
                 ->replaceArgument('$collectionName', $stores['collection_name'])
                 ->replaceArgument('$indexName', $stores['index_name'])

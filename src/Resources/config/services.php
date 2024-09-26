@@ -75,7 +75,6 @@ return static function (ContainerConfigurator $container) {
         ->set(MongoDBStore::class)
             ->abstract()
             ->args([
-                '$uri' => abstract_arg('The URI to connect to the MongoDB server'),
                 '$databaseName' => abstract_arg('The name of the database'),
                 '$collectionName' => abstract_arg('The name of the collection'),
                 '$indexName' => abstract_arg('The name of the Atlas Search index'),

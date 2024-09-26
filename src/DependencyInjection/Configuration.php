@@ -59,7 +59,7 @@ final class Configuration implements ConfigurationInterface
                             ->scalarNode('index_name')->end()
                             ->scalarNode('api_version')->end()
                             ->scalarNode('database_name')->end()
-                            ->scalarNode('uri')->end()
+                            ->scalarNode('ur')->end()
                             ->scalarNode('vector_field_name')->end()
                         ->end()
                     ->end()

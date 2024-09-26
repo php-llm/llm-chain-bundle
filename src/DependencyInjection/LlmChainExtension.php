@@ -160,7 +160,8 @@ final class LlmChainExtension extends Extension
                 ->replaceArgument('$endpointUrl', $stores['endpoint'])
                 ->replaceArgument('$apiKey', $stores['api_key'])
                 ->replaceArgument('$indexName', $stores['index_name'])
-                ->replaceArgument('$apiVersion', $stores['api_version']);
+                ->replaceArgument('$apiVersion', $stores['api_version'])
+                ->replaceArgument('$vectorFieldName', $stores['vector_field_name']);
 
             $container->setDefinition('llm_chain.store.'.$name, $definition);
         }

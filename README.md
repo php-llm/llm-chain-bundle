@@ -49,6 +49,13 @@ llm_chain:
             endpoint: '%env(AZURE_SEARCH_ENDPOINT)%'
             index_name: '%env(AZURE_SEARCH_INDEX)%' 
             api_version: '2024-07-01'
+        mongodb:
+            engine: 'mongodb'
+            database_name: '%env(MONGODB_DATABASE)%'
+            collection_name: '%env(MONGODB_COLLECTION)%'
+            index_name: '%env(MONGODB_INDEX)%'
+            vector_field_name: 'vector'
+            bulk_write: false
 ```
 
 ## Usage

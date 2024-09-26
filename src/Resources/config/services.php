@@ -13,6 +13,7 @@ use PhpLlm\LlmChain\OpenAI\Platform\Azure as AzurePlatform;
 use PhpLlm\LlmChain\OpenAI\Platform\OpenAI as OpenAIPlatform;
 use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
 use PhpLlm\LlmChain\Store\ChromaDB\Store as ChromaDBStore;
+use PhpLlm\LlmChain\Store\MongoDB\Store as MongoDBStore;
 use PhpLlm\LlmChain\ToolBox\ParameterAnalyzer;
 use PhpLlm\LlmChain\ToolBox\ToolAnalyzer;
 use PhpLlm\LlmChain\ToolBox\ToolBox;
@@ -70,6 +71,15 @@ return static function (ContainerConfigurator $container) {
             ->abstract()
             ->args([
                 '$collectionName' => abstract_arg('Name of ChromaDB collection'),
+            ])
+        ->set(MongoDBStore::class)
+            ->abstract()
+            ->args([
+                '$databaseName' => abstract_arg('The name of the database'),
+                '$collectionName' => abstract_arg('The name of the collection'),
+                '$indexName' => abstract_arg('The name of the Atlas Search index'),
+                '$vectorFieldName' => abstract_arg('The name of the field int the index that contains the vector'),
+                '$bulkWrite' => abstract_arg('Use bulk write operations'),
             ])
 
         // tools

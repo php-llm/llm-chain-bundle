@@ -13,6 +13,7 @@ use PhpLlm\LlmChain\OpenAI\Platform\Azure as AzurePlatform;
 use PhpLlm\LlmChain\OpenAI\Platform\OpenAI as OpenAIPlatform;
 use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
 use PhpLlm\LlmChain\Store\ChromaDB\Store as ChromaDBStore;
+use PhpLlm\LlmChain\Store\MongoDB\Store as MongoDBStore;
 use PhpLlm\LlmChain\Store\StoreInterface;
 use PhpLlm\LlmChain\Store\VectorStoreInterface;
 use PhpLlm\LlmChain\ToolBox\AsTool;
@@ -161,6 +162,18 @@ final class LlmChainExtension extends Extension
                 ->replaceArgument('$apiKey', $stores['api_key'])
                 ->replaceArgument('$indexName', $stores['index_name'])
                 ->replaceArgument('$apiVersion', $stores['api_version']);
+
+            $container->setDefinition('llm_chain.store.'.$name, $definition);
+        }
+
+        if ('mongodb' === $stores['engine']) {
+            $definition = new ChildDefinition(MongoDBStore::class);
+            $definition
+                ->replaceArgument('$databaseName', $stores['databaseName'])
+                ->replaceArgument('$collectionName', $stores['collection_name'])
+                ->replaceArgument('$indexName', $stores['index_name'])
+                ->replaceArgument('$vectorFieldName', $stores['vector_field_name'])
+                ->replaceArgument('$bulkWrite', $stores['bulk_write']);
 
             $container->setDefinition('llm_chain.store.'.$name, $definition);
         }

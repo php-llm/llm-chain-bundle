@@ -46,6 +46,11 @@ final class TraceableLanguageModel implements LanguageModel
         return $this->llm->supportsToolCalling();
     }
 
+    public function supportsImageInput(): bool
+    {
+        return $this->llm->supportsImageInput();
+    }
+
     public function supportsStructuredOutput(): bool
     {
         return $this->llm->supportsStructuredOutput();

@@ -12,7 +12,7 @@ use PhpLlm\LlmChain\OpenAI\Platform;
 use PhpLlm\LlmChain\OpenAI\Platform\Azure as AzurePlatform;
 use PhpLlm\LlmChain\OpenAI\Platform\OpenAI as OpenAIPlatform;
 use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
-use PhpLlm\LlmChain\Store\ChromaDb\Store as ChromaDbStore;
+use PhpLlm\LlmChain\Store\ChromaDB\Store as ChromaDBStore;
 use PhpLlm\LlmChain\ToolBox\ParameterAnalyzer;
 use PhpLlm\LlmChain\ToolBox\ToolAnalyzer;
 use PhpLlm\LlmChain\ToolBox\ToolBox;
@@ -66,7 +66,7 @@ return static function (ContainerConfigurator $container) {
                 '$indexName' => abstract_arg('Name of Azure AI Search index'),
                 '$apiVersion' => abstract_arg('API version for Azure AI Search API'),
             ])
-        ->set(ChromaDbStore::class)
+        ->set(ChromaDBStore::class)
             ->abstract()
             ->args([
                 '$collectionName' => abstract_arg('Name of ChromaDB collection'),

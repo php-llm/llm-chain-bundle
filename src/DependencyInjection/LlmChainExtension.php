@@ -12,7 +12,7 @@ use PhpLlm\LlmChain\OpenAI\Platform;
 use PhpLlm\LlmChain\OpenAI\Platform\Azure as AzurePlatform;
 use PhpLlm\LlmChain\OpenAI\Platform\OpenAI as OpenAIPlatform;
 use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
-use PhpLlm\LlmChain\Store\ChromaDb\Store as ChromaDbStore;
+use PhpLlm\LlmChain\Store\ChromaDB\Store as ChromaDBStore;
 use PhpLlm\LlmChain\Store\StoreInterface;
 use PhpLlm\LlmChain\Store\VectorStoreInterface;
 use PhpLlm\LlmChain\ToolBox\AsTool;
@@ -148,7 +148,7 @@ final class LlmChainExtension extends Extension
     private function processStoreConfig(string $name, array $stores, ContainerBuilder $container): void
     {
         if ('chroma-db' === $stores['engine']) {
-            $definition = new ChildDefinition(ChromaDbStore::class);
+            $definition = new ChildDefinition(ChromaDBStore::class);
             $definition->replaceArgument('$collectionName', $stores['collection_name']);
 
             $container->setDefinition('llm_chain.store.'.$name, $definition);

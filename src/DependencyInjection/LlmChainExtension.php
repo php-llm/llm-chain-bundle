@@ -170,7 +170,7 @@ final class LlmChainExtension extends Extension
         if ('mongodb' === $stores['engine']) {
             $definition = new ChildDefinition(MongoDBStore::class);
             $definition
-                ->replaceArgument('$databaseName', $stores['databaseName'])
+                ->replaceArgument('$databaseName', $stores['database_name'])
                 ->replaceArgument('$collectionName', $stores['collection_name'])
                 ->replaceArgument('$indexName', $stores['index_name'])
                 ->replaceArgument('$vectorFieldName', $stores['vector_field_name'])

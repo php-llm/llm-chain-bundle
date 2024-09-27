@@ -107,7 +107,7 @@
                                                             {{ message.content|nl2br }}
                                                         {% elseif 'user' == message.role.value %}
                                                             {% for item in message.content %}
-                                                                {% if item.text %}
+                                                                {% if item.text is defined %}
                                                                     {{ item.text|nl2br }}
                                                                 {% else %}
                                                                     <img src="{{ item.url }}" />

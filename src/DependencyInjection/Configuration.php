@@ -63,8 +63,8 @@ final class Configuration implements ConfigurationInterface
                             ->scalarNode('collection_name')->end()
                             // MongoDB
                             ->scalarNode('database_name')->end()
-                            ->booleanNode('bulk_write')->end()
-                            ->scalarNode('vector_field_name')->end()
+                            ->scalarNode('vector_field_name')->defaultValue('vector')->end()
+                            ->booleanNode('bulk_write')->defaultValue(false)->end()
                             // Pinecone
                             ->arrayNode('filter')->end()
                             ->scalarNode('namespace')->end()

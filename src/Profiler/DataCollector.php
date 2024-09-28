@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhpLlm\LlmChainBundle;
+namespace PhpLlm\LlmChainBundle\Profiler;
 
 use PhpLlm\LlmChain\ToolBox\Metadata;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 final class DataCollector extends AbstractDataCollector
 {
     /**
-     * @var list<TraceableLanguageModel>
+     * @var TraceableLanguageModel[]
      */
     private readonly array $llms;
 
@@ -27,7 +27,7 @@ final class DataCollector extends AbstractDataCollector
     public function __construct(
         #[AutowireIterator('llm_chain.traceable_llm')]
         iterable $llms,
-        private TraceableToolBox $toolBox,
+        private readonly TraceableToolBox $toolBox,
     ) {
         $this->llms = $llms instanceof \Traversable ? iterator_to_array($llms) : $llms;
     }

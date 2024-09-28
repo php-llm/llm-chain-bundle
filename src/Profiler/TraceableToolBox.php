@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhpLlm\LlmChainBundle;
+namespace PhpLlm\LlmChainBundle\Profiler;
 
 use PhpLlm\LlmChain\Response\ToolCall;
-use PhpLlm\LlmChain\ToolBox\ToolBox;
 use PhpLlm\LlmChain\ToolBox\ToolBoxInterface;
 
 /**
@@ -22,7 +21,7 @@ final class TraceableToolBox implements ToolBoxInterface
     public array $calls = [];
 
     public function __construct(
-        private ToolBox $toolRegistry,
+        private ToolBoxInterface $toolRegistry,
     ) {
     }
 

@@ -25,8 +25,8 @@ use PhpLlm\LlmChain\ToolBox\ParameterAnalyzer;
 use PhpLlm\LlmChain\ToolBox\ToolAnalyzer;
 use PhpLlm\LlmChain\ToolBox\ToolBox;
 use PhpLlm\LlmChain\ToolBox\ToolBoxInterface;
-use PhpLlm\LlmChainBundle\DataCollector;
-use PhpLlm\LlmChainBundle\TraceableToolBox;
+use PhpLlm\LlmChainBundle\Profiler\DataCollector;
+use PhpLlm\LlmChainBundle\Profiler\TraceableToolBox;
 
 return static function (ContainerConfigurator $container) {
     $container->services()

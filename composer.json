@@ -1,8 +1,8 @@
 {
     "name": "php-llm/llm-chain-bundle",
+    "type": "symfony-bundle",
     "description": "Symfony integration bundle for php-llm/llm-chain",
     "license": "MIT",
-    "type": "symfony-bundle",
     "authors": [
         {
             "name": "Christopher Hertel",
@@ -18,13 +18,22 @@
     },
     "require-dev": {
         "php-cs-fixer/shim": "^3.64",
-        "phpstan/phpstan": "^1.12"
+        "phpstan/phpstan": "^1.12",
+        "phpunit/phpunit": "^11.3"
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
         "psr-4": {
             "PhpLlm\\LlmChainBundle\\": "src/"
         }
-    }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PhpLlm\\LlmChainBundle\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

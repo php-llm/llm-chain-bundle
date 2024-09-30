@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\DependencyInjection;
 
-use PhpLlm\LlmChain\EmbeddingModel;
+use PhpLlm\LlmChain\EmbeddingsModel;
 use PhpLlm\LlmChain\LanguageModel;
 use PhpLlm\LlmChain\OpenAI\Model\Embeddings;
 use PhpLlm\LlmChain\OpenAI\Model\Gpt;
@@ -57,7 +57,7 @@ final class LlmChainExtension extends Extension
             $this->processEmbeddingsConfig($embeddingsName, $embeddings, $container);
         }
         if (1 === count($config['embeddings']) && isset($embeddingsName)) {
-            $container->setAlias(EmbeddingModel::class, 'llm_chain.embeddings.'.$embeddingsName);
+            $container->setAlias(EmbeddingsModel::class, 'llm_chain.embeddings.'.$embeddingsName);
         }
 
         foreach ($config['stores'] as $storeName => $store) {

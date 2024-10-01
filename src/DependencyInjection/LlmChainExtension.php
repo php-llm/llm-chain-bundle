@@ -17,7 +17,7 @@ use PhpLlm\LlmChain\Store\MongoDB\Store as MongoDBStore;
 use PhpLlm\LlmChain\Store\Pinecone\Store as PineconeStore;
 use PhpLlm\LlmChain\Store\StoreInterface;
 use PhpLlm\LlmChain\Store\VectorStoreInterface;
-use PhpLlm\LlmChain\ToolBox\AsTool;
+use PhpLlm\LlmChain\ToolBox\Attribute\AsTool;
 use PhpLlm\LlmChainBundle\Profiler\DataCollector;
 use PhpLlm\LlmChainBundle\Profiler\TraceableLanguageModel;
 use PhpLlm\LlmChainBundle\Profiler\TraceableToolBox;

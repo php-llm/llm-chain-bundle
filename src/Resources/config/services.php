@@ -19,6 +19,7 @@ use PhpLlm\LlmChain\Store\MongoDB\Store as MongoDBStore;
 use PhpLlm\LlmChain\Store\Pinecone\Store as PineconeStore;
 use PhpLlm\LlmChain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
 use PhpLlm\LlmChain\StructuredOutput\ResponseFormatFactory;
+use PhpLlm\LlmChain\StructuredOutput\ResponseFormatFactoryInterface;
 use PhpLlm\LlmChain\StructuredOutput\SchemaFactory;
 use PhpLlm\LlmChain\ToolBox\ChainProcessor as ToolProcessor;
 use PhpLlm\LlmChain\ToolBox\ParameterAnalyzer;
@@ -53,7 +54,7 @@ return static function (ContainerConfigurator $container) {
                 '$baseUrl' => abstract_arg('Base URL for Azure API'),
                 '$deployment' => abstract_arg('Deployment for Azure API'),
                 '$apiVersion' => abstract_arg('API version for Azure API'),
-                '$key' => abstract_arg('API key for Azure API'),
+                '$apiKey' => abstract_arg('API key for Azure API'),
             ])
         ->set(OpenAIPlatform::class)
             ->abstract()
@@ -106,8 +107,8 @@ return static function (ContainerConfigurator $container) {
 
         // structured output
         ->set(ResponseFormatFactory::class)
+            ->alias(ResponseFormatFactoryInterface::class, ResponseFormatFactory::class)
         ->set(SchemaFactory::class)
-            ->factory([SchemaFactory::class, 'create'])
         ->set(StructureOutputProcessor::class)
 
         // tools

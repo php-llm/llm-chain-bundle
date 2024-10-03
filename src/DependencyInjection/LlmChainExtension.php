@@ -102,7 +102,7 @@ final class LlmChainExtension extends Extension
             $definition
                 ->replaceArgument('$baseUrl', $platform['base_url'])
                 ->replaceArgument('$deployment', $platform['deployment'])
-                ->replaceArgument('$key', $platform['api_key'])
+                ->replaceArgument('$apiKey', $platform['api_key'])
                 ->replaceArgument('$apiVersion', $platform['version']);
 
             $container->setDefinition('llm_chain.platform.'.$name, $definition);

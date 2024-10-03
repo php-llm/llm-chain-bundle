@@ -6,13 +6,13 @@ namespace PhpLlm\LlmChainBundle\Profiler;
 
 use PhpLlm\LlmChain\LanguageModel;
 use PhpLlm\LlmChain\Message\MessageBag;
-use PhpLlm\LlmChain\Response\Response;
+use PhpLlm\LlmChain\Response\ResponseInterface;
 
 /**
  * @phpstan-type LlmCallData array{
  *     messages: MessageBag,
  *     options: array<string, mixed>,
- *     response: Response,
+ *     response: ResponseInterface,
  * }
  */
 final class TraceableLanguageModel implements LanguageModel
@@ -28,7 +28,7 @@ final class TraceableLanguageModel implements LanguageModel
     ) {
     }
 
-    public function call(MessageBag $messages, array $options = []): Response
+    public function call(MessageBag $messages, array $options = []): ResponseInterface
     {
         $response = $this->llm->call($messages, $options);
 

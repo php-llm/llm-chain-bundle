@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\DependencyInjection;
 
+use PhpLlm\LlmChain\Chain\InputProcessor;
+use PhpLlm\LlmChain\Chain\OutputProcessor;
 use PhpLlm\LlmChain\EmbeddingsModel;
 use PhpLlm\LlmChain\LanguageModel;
 use PhpLlm\LlmChain\OpenAI\Model\Embeddings;
@@ -75,6 +77,11 @@ final class LlmChainExtension extends Extension
                 'method' => $attribute->method,
             ]);
         });
+
+        $container->registerForAutoconfiguration(InputProcessor::class)
+            ->addTag('llm_chain.chain.input_processor');
+        $container->registerForAutoconfiguration(OutputProcessor::class)
+            ->addTag('llm_chain.chain.output_processor');
 
         if (false === $container->getParameter('kernel.debug')) {
             $container->removeDefinition(DataCollector::class);

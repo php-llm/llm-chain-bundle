@@ -143,7 +143,7 @@
                                     </tr>
                                     <tr>
                                         <th>Response</th>
-                                        <td>{{ call.response.hasToolCalls ? _self.tool_calls(call.response.toolCalls) : call.response.content }}</td>
+                                        <td>{{ call.response.content is iterable ? _self.tool_calls(call.response.content) : call.response.content }}</td>
                                     </tr>
                                 </tbody>
                             </table>

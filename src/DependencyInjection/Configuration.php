@@ -25,7 +25,7 @@ final class Configuration implements ConfigurationInterface
                             ->scalarNode('api_key')->isRequired()->end()
                             ->scalarNode('base_url')->end()
                             ->scalarNode('deployment')->end()
-                            ->scalarNode('version')->end()
+                            ->scalarNode('version')->info('The used API version')->end()
                         ->end()
                     ->end()
                 ->end()

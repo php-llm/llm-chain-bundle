@@ -14,50 +14,36 @@ composer require php-llm/llm-chain-bundle
 # config/packages/llm_chain.yaml
 llm_chain:
     platforms:
-        azure_gpt:
-            type: 'azure'
+        openai:
+            api_key: '%env(OPENAI_API_KEY)%'
+        azure:
             base_url: '%env(AZURE_OPENAI_BASEURL)%'
             deployment: '%env(AZURE_OPENAI_GPT)%'
             api_key: '%env(AZURE_OPENAI_KEY)%'
             version: '%env(AZURE_OPENAI_VERSION)%'
-        azure_embeddings:
-            type: 'azure'
-            base_url: '%env(AZURE_OPENAI_BASEURL)%'
-            deployment: '%env(AZURE_OPENAI_EMBEDDINGS)%'
-            api_key: '%env(AZURE_OPENAI_KEY)%'
-            version: '%env(AZURE_OPENAI_VERSION)%'
-        openai:
-            type: 'openai'
-            api_key: '%env(OPENAI_API_KEY)%'
-    llms:
-        azure_gpt:
-            platform: 'azure_gpt'
-        original_gpt:
-            platform: 'openai'
-    embeddings:
-        azure_embeddings:
-            platform: 'azure_embeddings'
-        original_embeddings:
-            platform: 'openai'
+        anthropic:
+            api_key: '%env(ANTHROPIC_API_KEY)%'
+    chains:
+        default:
+            model:
+                name: 'gpt'
+                version: 'gpt-3.5-turbo'
+                options: []
     stores:
         azure_search:
-            engine: 'azure-search'
             api_key: '%env(AZURE_SEARCH_KEY)%'
             endpoint: '%env(AZURE_SEARCH_ENDPOINT)%'
             index_name: '%env(AZURE_SEARCH_INDEX)%'
             api_version: '2024-07-01'
         chroma_db:
-            engine: 'chroma-db'
             collection_name: '%env(CHROMA_COLLECTION)%'
         mongodb:
-            engine: 'mongodb'
             database_name: '%env(MONGODB_DATABASE)%'
             collection_name: '%env(MONGODB_COLLECTION)%'
             index_name: '%env(MONGODB_INDEX)%'
             vector_field_name: 'vector'
             bulk_write: false
         pinecone:
-            engine: 'pinecone'
             namespace: 'partition'
             filter: { 'key' : 'value' }
             top_k: 5
@@ -69,12 +55,14 @@ llm_chain:
 
 Use the `Chain` service to leverage GPT:
 ```php
-use PhpLlm\LlmChain\Chat;
+use PhpLlm\LlmChain\ChainInterface;
+use PhpLlm\LlmChain\Model\Message\Message;
+use PhpLlm\LlmChain\Model\Message\MessageBag;
 
 final readonly class MyService
 {
     public function __construct(
-        private Chain $chain,
+        private ChainInterface $chain,
     ) {
     }
     
@@ -99,18 +87,18 @@ services:
         autowire: true
         autoconfigure: true
 
-    PhpLlm\LlmChain\ToolBox\Tool\Clock: ~
-    PhpLlm\LlmChain\ToolBox\Tool\OpenMeteo: ~
-    PhpLlm\LlmChain\ToolBox\Tool\SerpApi:
+    PhpLlm\LlmChain\Chain\ToolBox\Tool\Clock: ~
+    PhpLlm\LlmChain\Chain\ToolBox\Tool\OpenMeteo: ~
+    PhpLlm\LlmChain\Chain\ToolBox\Tool\SerpApi:
         $apiKey: '%env(SERP_API_KEY)%'
-    PhpLlm\LlmChain\ToolBox\Tool\SimilaritySearch: ~
-    PhpLlm\LlmChain\ToolBox\Tool\Wikipedia: ~
-    PhpLlm\LlmChain\ToolBox\Tool\YouTubeTranscriber: ~
+    PhpLlm\LlmChain\Chain\ToolBox\Tool\SimilaritySearch: ~
+    PhpLlm\LlmChain\Chain\ToolBox\Tool\Wikipedia: ~
+    PhpLlm\LlmChain\Chain\ToolBox\Tool\YouTubeTranscriber: ~
 ```
 
 Custom tools can be registered by using the `#[AsTool]` attribute:
 ```php
-use PhpLlm\LlmChain\ToolBox\AsTool;
+use PhpLlm\LlmChain\Chain\ToolBox\Attribute\AsTool;
 
 #[AsTool('company_name', 'Provides the name of your company')]
 final class CompanyName

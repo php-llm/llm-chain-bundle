@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\Profiler;
 
-use PhpLlm\LlmChain\Response\ToolCall;
-use PhpLlm\LlmChain\ToolBox\ToolBoxInterface;
+use PhpLlm\LlmChain\Chain\ToolBox\ToolBoxInterface;
+use PhpLlm\LlmChain\Model\Response\ToolCall;
 
 /**
  * @phpstan-type ToolCallData array{

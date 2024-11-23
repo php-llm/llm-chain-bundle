@@ -4,44 +4,28 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\Profiler;
 
-use PhpLlm\LlmChain\ToolBox\Metadata;
+use PhpLlm\LlmChain\Chain\ToolBox\Metadata;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
-use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * @phpstan-import-type LlmCallData from TraceableLanguageModel
+ * @phpstan-import-type PlatformCallData from TraceablePlatform
  * @phpstan-import-type ToolCallData from TraceableToolBox
  */
 final class DataCollector extends AbstractDataCollector
 {
-    /**
-     * @var TraceableLanguageModel[]
-     */
-    private readonly array $llms;
-
-    /**
-     * @param iterable<TraceableLanguageModel> $llms
-     */
     public function __construct(
-        #[AutowireIterator('llm_chain.traceable_llm')]
-        iterable $llms,
+        private readonly TraceablePlatform $platform,
         private readonly TraceableToolBox $toolBox,
     ) {
-        $this->llms = $llms instanceof \Traversable ? iterator_to_array($llms) : $llms;
     }
 
     public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
     {
-        $llmCalls = [];
-        foreach ($this->llms as $llm) {
-            $llmCalls[$llm->getName()] = $llm->calls;
-        }
-
         $this->data = [
             'tools' => $this->toolBox->getMap(),
-            'llm_calls' => $llmCalls,
+            'platform_calls' => $this->platform->calls,
             'tool_calls' => $this->toolBox->calls,
         ];
     }
@@ -52,16 +36,11 @@ final class DataCollector extends AbstractDataCollector
     }
 
     /**
-     * @return list<LlmCallData>
+     * @return PlatformCallData[]
      */
-    public function getLlmCalls(): array
+    public function getPlatformCalls(): array
     {
-        return $this->data['llm_calls'] ?? [];
-    }
-
-    public function getLlmCallCount(): int
-    {
-        return array_sum(array_map('count', $this->data['llm_calls'] ?? []));
+        return $this->data['platform_calls'] ?? [];
     }
 
     /**
@@ -73,7 +52,7 @@ final class DataCollector extends AbstractDataCollector
     }
 
     /**
-     * @return list<ToolCallData>
+     * @return ToolCallData[]
      */
     public function getToolCalls(): array
     {

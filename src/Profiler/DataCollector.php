@@ -4,45 +4,50 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\Profiler;
 
-use PhpLlm\LlmChain\ToolBox\Metadata;
+use PhpLlm\LlmChain\Chain\ToolBox\Metadata;
+use PhpLlm\LlmChain\Chain\ToolBox\ToolBoxInterface;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
-use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
+use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * @phpstan-import-type LlmCallData from TraceableLanguageModel
+ * @phpstan-import-type PlatformCallData from TraceablePlatform
  * @phpstan-import-type ToolCallData from TraceableToolBox
  */
 final class DataCollector extends AbstractDataCollector
 {
     /**
-     * @var TraceableLanguageModel[]
+     * @var TraceablePlatform[]
      */
-    private readonly array $llms;
+    private array $platforms;
 
     /**
-     * @param iterable<TraceableLanguageModel> $llms
+     * @var TraceableToolBox[]
+     */
+    private array $toolBoxes;
+
+    /**
+     * @param TraceablePlatform[] $platforms
+     * @param TraceableToolBox[]  $toolBoxes
      */
     public function __construct(
-        #[AutowireIterator('llm_chain.traceable_llm')]
-        iterable $llms,
-        private readonly TraceableToolBox $toolBox,
+        #[TaggedIterator('llm_chain.traceable_platform')]
+        iterable $platforms,
+        private readonly ToolBoxInterface $defaultToolBox,
+        #[TaggedIterator('llm_chain.traceable_toolbox')]
+        iterable $toolBoxes,
     ) {
-        $this->llms = $llms instanceof \Traversable ? iterator_to_array($llms) : $llms;
+        $this->platforms = $platforms instanceof \Traversable ? iterator_to_array($platforms) : $platforms;
+        $this->toolBoxes = $toolBoxes instanceof \Traversable ? iterator_to_array($toolBoxes) : $toolBoxes;
     }
 
     public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
     {
-        $llmCalls = [];
-        foreach ($this->llms as $llm) {
-            $llmCalls[$llm->getName()] = $llm->calls;
-        }
-
         $this->data = [
-            'tools' => $this->toolBox->getMap(),
-            'llm_calls' => $llmCalls,
-            'tool_calls' => $this->toolBox->calls,
+            'tools' => $this->defaultToolBox->getMap(),
+            'platform_calls' => array_merge(...array_map(fn (TraceablePlatform $platform) => $platform->calls, $this->platforms)),
+            'tool_calls' => array_merge(...array_map(fn (TraceableToolBox $toolBox) => $toolBox->calls, $this->toolBoxes)),
         ];
     }
 
@@ -52,16 +57,11 @@ final class DataCollector extends AbstractDataCollector
     }
 
     /**
-     * @return list<LlmCallData>
+     * @return PlatformCallData[]
      */
-    public function getLlmCalls(): array
+    public function getPlatformCalls(): array
     {
-        return $this->data['llm_calls'] ?? [];
-    }
-
-    public function getLlmCallCount(): int
-    {
-        return array_sum(array_map('count', $this->data['llm_calls'] ?? []));
+        return $this->data['platform_calls'] ?? [];
     }
 
     /**
@@ -73,7 +73,7 @@ final class DataCollector extends AbstractDataCollector
     }
 
     /**
-     * @return list<ToolCallData>
+     * @return ToolCallData[]
      */
     public function getToolCalls(): array
     {

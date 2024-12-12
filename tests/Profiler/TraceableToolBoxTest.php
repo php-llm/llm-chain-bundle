@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\Tests\Profiler;
 
-use PhpLlm\LlmChain\Response\ToolCall;
-use PhpLlm\LlmChain\ToolBox\Metadata;
-use PhpLlm\LlmChain\ToolBox\ToolBoxInterface;
+use PhpLlm\LlmChain\Chain\ToolBox\Metadata;
+use PhpLlm\LlmChain\Chain\ToolBox\ToolBoxInterface;
+use PhpLlm\LlmChain\Model\Response\ToolCall;
 use PhpLlm\LlmChainBundle\Profiler\TraceableToolBox;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Small;

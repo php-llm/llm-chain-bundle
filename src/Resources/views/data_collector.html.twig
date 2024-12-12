@@ -1,10 +1,10 @@
 {% extends '@WebProfiler/Profiler/layout.html.twig' %}
 
 {% block toolbar %}
-    {% if collector.llmCallCount > 0 %}
+    {% if collector.platformCalls|length > 0 %}
         {% set icon %}
             {{ include('@LlmChain/icon.svg', { y: 18 }) }}
-            <span class="sf-toolbar-value">{{ collector.llmCallCount }}</span>
+            <span class="sf-toolbar-value">{{ collector.platformCalls|length }}</span>
             <span class="sf-toolbar-info-piece-additional-detail">
                 <span class="sf-toolbar-label">calls</span>
             </span>
@@ -13,12 +13,12 @@
         {% set text %}
             <div class="sf-toolbar-info-piece">
                 <div class="sf-toolbar-info-piece">
-                    <b class="label">Configured LLMs</b>
-                    <span class="sf-toolbar-status">{{ collector.llmCalls|length }}</span>
+                    <b class="label">Configured Platforms</b>
+                    <span class="sf-toolbar-status">1</span>
                 </div>
                 <div class="sf-toolbar-info-piece">
-                    <b class="label">LLM Calls</b>
-                    <span class="sf-toolbar-status">{{ collector.llmCallCount }}</span>
+                    <b class="label">Platform Calls</b>
+                    <span class="sf-toolbar-status">{{ collector.platformCalls|length }}</span>
                 </div>
                 <div class="sf-toolbar-info-piece">
                     <b class="label">Registered Tools</b>
@@ -39,20 +39,20 @@
     <span class="label">
         <span class="icon">{{ include('@LlmChain/icon.svg', { y: 16 }) }}</span>
         <strong>LLM Chain</strong>
-        <span class="count">{{ collector.llmCallCount }}</span>
+        <span class="count">{{ collector.platformCalls|length }}</span>
     </span>
 {% endblock %}
 
 {% macro tool_calls(toolCalls) %}
     Tool call{{ toolCalls|length > 1 ? 's' }}:
-    <ul>
+    <ol>
         {% for toolCall in toolCalls %}
             <li>
                 <strong>{{ toolCall.name }}({{ toolCall.arguments|map((value, key) => "#{key}: #{value}")|join(', ') }})</strong>
                 <i>(ID: {{ toolCall.id }})</i>
             </li>
         {% endfor %}
-    </ul>
+    </ol>
 {% endmacro %}
 
 {% block panel %}
@@ -60,19 +60,19 @@
     <section class="metrics">
         <div class="metric-group">
             <div class="metric">
-                <span class="value">{{ collector.llmCalls|length }}</span>
-                <span class="label">Configured LLMs</span>
+                <span class="value">1</span>
+                <span class="label">Platforms</span>
             </div>
             <div class="metric">
-                <span class="value">{{ collector.llmCallCount }}</span>
-                <span class="label">LLM Calls</span>
+                <span class="value">{{ collector.platformCalls|length }}</span>
+                <span class="label">Platform Calls</span>
             </div>
         </div>
         <div class="metric-divider"></div>
         <div class="metric-group">
             <div class="metric">
                 <span class="value">{{ collector.tools|length }}</span>
-                <span class="label">Registered Tools</span>
+                <span class="label">Tools</span>
             </div>
             <div class="metric">
                 <span class="value">{{ collector.toolCalls|length }}</span>
@@ -80,26 +80,30 @@
             </div>
         </div>
     </section>
-    <h3>LLM Calls</h3>
-    {% if collector.llmCallCount %}
+    <h3>Platform Calls</h3>
+    {% if collector.platformCalls|length %}
         <div class="sf-tabs">
-            {% for llm, calls in collector.llmCalls %}
-                <div class="tab {{ calls|length == 0 ? 'disabled' }}">
-                    <h3 class="tab-title">{{ llm }} <span class="badge">{{ calls|length }}</span></h3>
-                    <div class="tab-content">
-                        {% for call in calls %}
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th colspan="2">Call {{ loop.index }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <th>Messages</th>
-                                        <td>
+            <div class="tab {{ collector.platformCalls|length == 0 ? 'disabled' }}">
+                <h3 class="tab-title">Platform Calls <span class="badge">{{ collector.platformCalls|length }}</span></h3>
+                <div class="tab-content">
+                    {% for call in collector.platformCalls %}
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">Call {{ loop.index }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th>Model</th>
+                                    <td><strong>{{ constant('class', call.model) }}</strong> (Version: {{ call.model.version }})</td>
+                                </tr>
+                                <tr>
+                                    <th>Input</th>
+                                    <td>
+                                        {% if call.input is iterable %}{# expect MessageBag #}
                                             <ol>
-                                                {% for message in call.messages %}
+                                                {% for message in call.input %}
                                                     <li>
                                                         <strong>{{ message.role.value|title }}:</strong>
                                                         {% if 'assistant' == message.role.value and message.hasToolCalls%}
@@ -121,42 +125,56 @@
                                                     </li>
                                                 {% endfor %}
                                             </ol>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Options</th>
-                                        <td>
-                                            <ul>
-                                                {% for key, value in call.options %}
-                                                    {% if key == 'tools' %}
-                                                        <li>{{ key }}:
-                                                            <ul>
-                                                                {% for tool in value %}
-                                                                    <li>{{ tool.name }}</li>
-                                                                {% endfor %}
-                                                            </ul>
-                                                        </li>
-                                                    {% else %}
-                                                        <li>{{ key }}: {{ dump(value) }}</li>
-                                                    {% endif %}
+                                        {% else %}
+                                            {{ call.input }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Options</th>
+                                    <td>
+                                        <ul>
+                                            {% for key, value in call.options %}
+                                                {% if key == 'tools' %}
+                                                    <li>{{ key }}:
+                                                        <ul>
+                                                            {% for tool in value %}
+                                                                <li>{{ tool.name }}</li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </li>
+                                                {% else %}
+                                                    <li>{{ key }}: {{ dump(value) }}</li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Response</th>
+                                    <td>
+                                        {% if call.input is iterable and call.response.content is iterable %}{# expect array of ToolCall #}
+                                            {{ _self.tool_calls(call.response.content) }}
+                                        {% elseif call.response.content is iterable %}{# expect array of Vectors #}
+                                            <ol>
+                                                {% for vector in call.response.content %}
+                                                    <li>Vector with <strong>{{ vector.dimensions }}</strong> dimensions</li>
                                                 {% endfor %}
-                                            </ul>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Response</th>
-                                        <td>{{ call.response.content is iterable ? _self.tool_calls(call.response.content) : call.response.content }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        {% endfor %}
-                    </div>
+                                            </ol>
+                                        {% else %}
+                                            {{ call.response.content }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    {% endfor %}
                 </div>
-            {% endfor %}
+            </div>
         </div>
     {% else %}
         <div class="empty">
-            <p>No LLM calls were made.</p>
+            <p>No platform calls were made.</p>
         </div>
     {% endif %}
 

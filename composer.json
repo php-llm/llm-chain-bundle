@@ -11,15 +11,15 @@
     ],
     "require": {
         "php": ">=8.2",
-        "php-llm/llm-chain": "0.7.*",
+        "php-llm/llm-chain": "^0.9.3",
         "symfony/config": "^6.4 || ^7.0",
         "symfony/dependency-injection": "^6.4 || ^7.0",
         "symfony/framework-bundle": "^6.4 || ^7.0"
     },
     "require-dev": {
-        "php-cs-fixer/shim": "^3.64",
+        "php-cs-fixer/shim": "^3.65",
         "phpstan/phpstan": "^2.0",
-        "phpunit/phpunit": "^11.3"
+        "phpunit/phpunit": "^11.5"
     },
     "config": {
         "sort-packages": true
@@ -33,7 +33,5 @@
         "psr-4": {
             "PhpLlm\\LlmChainBundle\\Tests\\": "tests/"
         }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    }
 }

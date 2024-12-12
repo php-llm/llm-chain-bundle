@@ -5,27 +5,17 @@ declare(strict_types=1);
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use PhpLlm\LlmChain\Chain;
-use PhpLlm\LlmChain\Chain\InputProcessor;
-use PhpLlm\LlmChain\Chain\OutputProcessor;
-use PhpLlm\LlmChain\DocumentEmbedder;
-use PhpLlm\LlmChain\OpenAI\Model\Embeddings;
-use PhpLlm\LlmChain\OpenAI\Model\Gpt;
-use PhpLlm\LlmChain\OpenAI\Platform;
-use PhpLlm\LlmChain\OpenAI\Platform\Azure as AzurePlatform;
-use PhpLlm\LlmChain\OpenAI\Platform\OpenAI as OpenAIPlatform;
-use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
-use PhpLlm\LlmChain\Store\ChromaDB\Store as ChromaDBStore;
-use PhpLlm\LlmChain\Store\MongoDB\Store as MongoDBStore;
-use PhpLlm\LlmChain\Store\Pinecone\Store as PineconeStore;
-use PhpLlm\LlmChain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
-use PhpLlm\LlmChain\StructuredOutput\ResponseFormatFactory;
-use PhpLlm\LlmChain\StructuredOutput\ResponseFormatFactoryInterface;
-use PhpLlm\LlmChain\StructuredOutput\SchemaFactory;
-use PhpLlm\LlmChain\ToolBox\ChainProcessor as ToolProcessor;
-use PhpLlm\LlmChain\ToolBox\ParameterAnalyzer;
-use PhpLlm\LlmChain\ToolBox\ToolAnalyzer;
-use PhpLlm\LlmChain\ToolBox\ToolBox;
-use PhpLlm\LlmChain\ToolBox\ToolBoxInterface;
+use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
+use PhpLlm\LlmChain\Chain\StructuredOutput\ResponseFormatFactory;
+use PhpLlm\LlmChain\Chain\StructuredOutput\ResponseFormatFactoryInterface;
+use PhpLlm\LlmChain\Chain\StructuredOutput\SchemaFactory;
+use PhpLlm\LlmChain\Chain\ToolBox\ChainProcessor as ToolProcessor;
+use PhpLlm\LlmChain\Chain\ToolBox\ParameterAnalyzer;
+use PhpLlm\LlmChain\Chain\ToolBox\ToolAnalyzer;
+use PhpLlm\LlmChain\Chain\ToolBox\ToolBox;
+use PhpLlm\LlmChain\Chain\ToolBox\ToolBoxInterface;
+use PhpLlm\LlmChain\Embedder;
+use PhpLlm\LlmChain\PlatformInterface;
 use PhpLlm\LlmChainBundle\Profiler\DataCollector;
 use PhpLlm\LlmChainBundle\Profiler\TraceableToolBox;
 
@@ -33,76 +23,20 @@ return static function (ContainerConfigurator $container) {
     $container->services()
         ->defaults()
             ->autowire()
-            ->autoconfigure()
-        ->instanceof(InputProcessor::class)
-            ->tag('llm_chain.chain.input_processor')
-        ->instanceof(OutputProcessor::class)
-            ->tag('llm_chain.chain.output_processor')
 
         // high level feature
-        ->set(Chain::class)
+        ->set('llm_chain.chain.abstract', Chain::class)
+            ->abstract()
             ->args([
+                '$platform' => service(PlatformInterface::class),
+                '$llm' => abstract_arg('Language model'),
                 '$inputProcessor' => tagged_iterator('llm_chain.chain.input_processor'),
                 '$outputProcessor' => tagged_iterator('llm_chain.chain.output_processor'),
             ])
-        ->set(DocumentEmbedder::class)
-
-        // platforms
-        ->set(AzurePlatform::class)
+        ->set('llm_chain.embedder.abstract', Embedder::class)
             ->abstract()
             ->args([
-                '$baseUrl' => abstract_arg('Base URL for Azure API'),
-                '$deployment' => abstract_arg('Deployment for Azure API'),
-                '$apiVersion' => abstract_arg('API version for Azure API'),
-                '$apiKey' => abstract_arg('API key for Azure API'),
-            ])
-        ->set(OpenAIPlatform::class)
-            ->abstract()
-            ->args([
-                '$apiKey' => abstract_arg('API key for OpenAI API'),
-            ])
-
-        // models
-        ->set(Gpt::class)
-            ->abstract()
-            ->args([
-                '$platform' => service(Platform::class),
-            ])
-        ->set(Embeddings::class)
-            ->abstract()
-            ->args([
-                '$platform' => service(Platform::class),
-            ])
-
-        // stores
-        ->set(AzureSearchStore::class)
-            ->abstract()
-            ->args([
-                '$endpointUrl' => abstract_arg('Endpoint URL for Azure AI Search API'),
-                '$apiKey' => abstract_arg('API key for Azure AI Search API'),
-                '$indexName' => abstract_arg('Name of Azure AI Search index'),
-                '$apiVersion' => abstract_arg('API version for Azure AI Search API'),
-            ])
-        ->set(ChromaDBStore::class)
-            ->abstract()
-            ->args([
-                '$collectionName' => abstract_arg('Name of ChromaDB collection'),
-            ])
-        ->set(MongoDBStore::class)
-            ->abstract()
-            ->args([
-                '$databaseName' => abstract_arg('The name of the database'),
-                '$collectionName' => abstract_arg('The name of the collection'),
-                '$indexName' => abstract_arg('The name of the Atlas Search index'),
-                '$vectorFieldName' => abstract_arg('The name of the field int the index that contains the vector'),
-                '$bulkWrite' => abstract_arg('Use bulk write operations'),
-            ])
-        ->set(PineconeStore::class)
-            ->abstract()
-            ->args([
-                '$namespace' => abstract_arg('Namespace of index'),
-                '$filter' => abstract_arg('Filter for metadata'),
-                '$topK' => abstract_arg('Number of results to return'),
+                '$embeddings' => abstract_arg('Embeddings model'),
             ])
 
         // structured output
@@ -112,18 +46,37 @@ return static function (ContainerConfigurator $container) {
         ->set(StructureOutputProcessor::class)
 
         // tools
+        ->set('llm_chain.toolbox.abstract')
+            ->class(ToolBox::class)
+            ->abstract()
+            ->args([
+                '$tools' => abstract_arg('Collection of tools'),
+            ])
         ->set(ToolBox::class)
+            ->parent('llm_chain.toolbox.abstract')
             ->args([
                 '$tools' => tagged_iterator('llm_chain.tool'),
             ])
             ->alias(ToolBoxInterface::class, ToolBox::class)
         ->set(ToolAnalyzer::class)
         ->set(ParameterAnalyzer::class)
+        ->set('llm_chain.tool.chain_processor.abstract')
+            ->class(ToolProcessor::class)
+            ->abstract()
+            ->args([
+                '$toolBox' => abstract_arg('Tool box'),
+            ])
         ->set(ToolProcessor::class)
+            ->parent('llm_chain.tool.chain_processor.abstract')
+            ->args([
+                '$toolBox' => service(ToolBoxInterface::class),
+            ])
 
         // profiler
         ->set(DataCollector::class)
+            ->tag('data_collector')
         ->set(TraceableToolBox::class)
-            ->decorate(ToolBox::class)
+            ->decorate(ToolBoxInterface::class)
+            ->tag('llm_chain.traceable_toolbox')
     ;
 };

@@ -4,24 +4,33 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\DependencyInjection;
 
+use PhpLlm\LlmChain\Bridge\Anthropic\Claude;
+use PhpLlm\LlmChain\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
+use PhpLlm\LlmChain\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIPlatformFactory;
+use PhpLlm\LlmChain\Bridge\Azure\Store\SearchStore as AzureSearchStore;
+use PhpLlm\LlmChain\Bridge\ChromaDB\Store as ChromaDBStore;
+use PhpLlm\LlmChain\Bridge\Meta\Llama;
+use PhpLlm\LlmChain\Bridge\MongoDB\Store as MongoDBStore;
+use PhpLlm\LlmChain\Bridge\OpenAI\Embeddings;
+use PhpLlm\LlmChain\Bridge\OpenAI\GPT;
+use PhpLlm\LlmChain\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
+use PhpLlm\LlmChain\Bridge\Pinecone\Store as PineconeStore;
+use PhpLlm\LlmChain\Bridge\Voyage\Voyage;
 use PhpLlm\LlmChain\Chain\InputProcessor;
 use PhpLlm\LlmChain\Chain\OutputProcessor;
-use PhpLlm\LlmChain\EmbeddingsModel;
-use PhpLlm\LlmChain\LanguageModel;
-use PhpLlm\LlmChain\OpenAI\Model\Embeddings;
-use PhpLlm\LlmChain\OpenAI\Model\Gpt;
-use PhpLlm\LlmChain\OpenAI\Platform;
-use PhpLlm\LlmChain\OpenAI\Platform\Azure as AzurePlatform;
-use PhpLlm\LlmChain\OpenAI\Platform\OpenAI as OpenAIPlatform;
-use PhpLlm\LlmChain\Store\Azure\SearchStore as AzureSearchStore;
-use PhpLlm\LlmChain\Store\ChromaDB\Store as ChromaDBStore;
-use PhpLlm\LlmChain\Store\MongoDB\Store as MongoDBStore;
-use PhpLlm\LlmChain\Store\Pinecone\Store as PineconeStore;
+use PhpLlm\LlmChain\Chain\ToolBox\Attribute\AsTool;
+use PhpLlm\LlmChain\ChainInterface;
+use PhpLlm\LlmChain\Embedder;
+use PhpLlm\LlmChain\Model\EmbeddingsModel;
+use PhpLlm\LlmChain\Model\LanguageModel;
+use PhpLlm\LlmChain\Platform;
+use PhpLlm\LlmChain\Platform\ModelClient;
+use PhpLlm\LlmChain\Platform\ResponseConverter;
+use PhpLlm\LlmChain\PlatformInterface;
 use PhpLlm\LlmChain\Store\StoreInterface;
 use PhpLlm\LlmChain\Store\VectorStoreInterface;
-use PhpLlm\LlmChain\ToolBox\Attribute\AsTool;
 use PhpLlm\LlmChainBundle\Profiler\DataCollector;
-use PhpLlm\LlmChainBundle\Profiler\TraceableLanguageModel;
+use PhpLlm\LlmChainBundle\Profiler\TraceablePlatform;
 use PhpLlm\LlmChainBundle\Profiler\TraceableToolBox;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -30,6 +39,8 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
+
+use function Symfony\Component\String\u;
 
 final class LlmChainExtension extends Extension
 {
@@ -40,34 +51,53 @@ final class LlmChainExtension extends Extension
 
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
-
-        foreach ($config['platforms'] as $platformName => $platform) {
-            $this->processPlatformConfig($platformName, $platform, $container);
+        foreach ($config['platform'] as $type => $platform) {
+            $this->processPlatformConfig($type, $platform, $container);
         }
-        if (1 === count($config['platforms']) && isset($platformName)) {
-            $container->setAlias(Platform::class, 'llm_chain.platform.'.$platformName);
+        $platforms = array_keys($container->findTaggedServiceIds('llm_chain.platform'));
+        if (1 === count($platforms)) {
+            $container->setAlias(PlatformInterface::class, reset($platforms));
         }
-
-        foreach ($config['llms'] as $llmName => $llm) {
-            $this->processLlmConfig($llmName, $llm, $container);
-        }
-        if (1 === count($config['llms']) && isset($llmName)) {
-            $container->setAlias(LanguageModel::class, 'llm_chain.llm.'.$llmName);
-        }
-
-        foreach ($config['embeddings'] as $embeddingsName => $embeddings) {
-            $this->processEmbeddingsConfig($embeddingsName, $embeddings, $container);
-        }
-        if (1 === count($config['embeddings']) && isset($embeddingsName)) {
-            $container->setAlias(EmbeddingsModel::class, 'llm_chain.embeddings.'.$embeddingsName);
+        if ($container->getParameter('kernel.debug')) {
+            foreach ($platforms as $platform) {
+                $traceablePlatformDefinition = (new Definition(TraceablePlatform::class))
+                    ->setDecoratedService($platform)
+                    ->setAutowired(true)
+                    ->addTag('llm_chain.traceable_platform');
+                $suffix = u($platform)->afterLast('.')->toString();
+                $container->setDefinition('llm_chain.traceable_platform.'.$suffix, $traceablePlatformDefinition);
+            }
         }
 
-        foreach ($config['stores'] as $storeName => $store) {
-            $this->processStoreConfig($storeName, $store, $container);
+        foreach ($config['chain'] as $chainName => $chain) {
+            $this->processChainConfig($chainName, $chain, $container);
         }
-        if (1 === count($config['stores']) && isset($storeName)) {
-            $container->setAlias(VectorStoreInterface::class, 'llm_chain.store.'.$storeName);
-            $container->setAlias(StoreInterface::class, 'llm_chain.store.'.$storeName);
+        if (1 === count($config['chain']) && isset($chainName)) {
+            $container->setAlias(ChainInterface::class, 'llm_chain.chain.'.$chainName);
+        }
+        $llms = array_keys($container->findTaggedServiceIds('llm_chain.model.language_model'));
+        if (1 === count($llms)) {
+            $container->setAlias(LanguageModel::class, reset($llms));
+        }
+
+        foreach ($config['store'] as $type => $store) {
+            $this->processStoreConfig($type, $store, $container);
+        }
+        $stores = array_keys($container->findTaggedServiceIds('llm_chain.store'));
+        if (1 === count($stores)) {
+            $container->setAlias(VectorStoreInterface::class, reset($stores));
+            $container->setAlias(StoreInterface::class, reset($stores));
+        }
+
+        foreach ($config['embedder'] as $embedderName => $embedder) {
+            $this->processEmbedderConfig($embedderName, $embedder, $container);
+        }
+        if (1 === count($config['embedder']) && isset($embedderName)) {
+            $container->setAlias(Embedder::class, 'llm_chain.embedder.'.$embedderName);
+        }
+        $embeddings = array_keys($container->findTaggedServiceIds('llm_chain.model.embeddings_model'));
+        if (1 === count($embeddings)) {
+            $container->setAlias(EmbeddingsModel::class, reset($embeddings));
         }
 
         $container->registerAttributeForAutoconfiguration(AsTool::class, static function (ChildDefinition $definition, AsTool $attribute): void {
@@ -82,6 +112,10 @@ final class LlmChainExtension extends Extension
             ->addTag('llm_chain.chain.input_processor');
         $container->registerForAutoconfiguration(OutputProcessor::class)
             ->addTag('llm_chain.chain.output_processor');
+        $container->registerForAutoconfiguration(ModelClient::class)
+            ->addTag('llm_chain.platform.model_client');
+        $container->registerForAutoconfiguration(ResponseConverter::class)
+            ->addTag('llm_chain.platform.response_converter');
 
         if (false === $container->getParameter('kernel.debug')) {
             $container->removeDefinition(DataCollector::class);
@@ -92,108 +126,214 @@ final class LlmChainExtension extends Extension
     /**
      * @param array<string, mixed> $platform
      */
-    private function processPlatformConfig(string $name, array $platform, ContainerBuilder $container): void
+    private function processPlatformConfig(string $type, array $platform, ContainerBuilder $container): void
     {
-        if ('openai' === $platform['type']) {
-            $definition = new ChildDefinition(OpenAIPlatform::class);
-            $definition
-                ->replaceArgument('$apiKey', $platform['api_key']);
+        if ('openai' === $type) {
+            $platformId = 'llm_chain.platform.openai';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(OpenAIPlatformFactory::class.'::create')
+                ->setAutowired(true)
+                ->setArguments(['$apiKey' => $platform['api_key']])
+                ->addTag('llm_chain.platform');
 
-            $container->setDefinition('llm_chain.platform.'.$name, $definition);
+            $container->setDefinition($platformId, $definition);
 
             return;
         }
 
-        if ('azure' === $platform['type']) {
-            $definition = new ChildDefinition(AzurePlatform::class);
-            $definition
-                ->replaceArgument('$baseUrl', $platform['base_url'])
-                ->replaceArgument('$deployment', $platform['deployment'])
-                ->replaceArgument('$apiKey', $platform['api_key'])
-                ->replaceArgument('$apiVersion', $platform['version']);
+        if ('azure' === $type) {
+            foreach ($platform as $name => $config) {
+                $platformId = 'llm_chain.platform.azure.'.$name;
+                $definition = (new Definition(Platform::class))
+                    ->setFactory(AzureOpenAIPlatformFactory::class.'::create')
+                    ->setAutowired(true)
+                    ->setArguments([
+                        '$baseUrl' => $config['base_url'],
+                        '$deployment' => $config['deployment'],
+                        '$apiVersion' => $config['api_version'],
+                        '$apiKey' => $config['api_key'],
+                    ])
+                    ->addTag('llm_chain.platform');
 
-            $container->setDefinition('llm_chain.platform.'.$name, $definition);
+                $container->setDefinition($platformId, $definition);
+            }
+
+            return;
         }
+
+        if ('anthropic' === $type) {
+            $platformId = 'llm_chain.platform.anthropic';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(AnthropicPlatformFactory::class.'::create')
+                ->setAutowired(true)
+                ->setArguments([
+                    '$apiKey' => $platform['api_key'],
+                ])
+                ->addTag('llm_chain.platform');
+
+            if (isset($platform['version'])) {
+                $definition->replaceArgument('$version', $platform['version']);
+            }
+
+            $container->setDefinition($platformId, $definition);
+
+            return;
+        }
+
+        throw new \InvalidArgumentException(sprintf('Platform "%s" is not supported for configuration via bundle at this point.', $type));
     }
 
     /**
-     * @param array<string, mixed> $llm
+     * @param array<string, mixed> $config
      */
-    private function processLlmConfig(string $name, array $llm, ContainerBuilder $container): void
+    private function processChainConfig(string $name, array $config, ContainerBuilder $container): void
     {
-        $platform = isset($llm['platform']) ? 'llm_chain.platform.'.$llm['platform'] : Platform::class;
+        // MODEL
+        ['name' => $modelName, 'version' => $version, 'options' => $options] = $config['model'];
 
-        $definition = new ChildDefinition(Gpt::class);
-        $definition->replaceArgument('$platform', new Reference($platform));
-
-        $container->setDefinition('llm_chain.llm.'.$name, $definition);
-
-        if ($container->getParameter('kernel.debug')) {
-            $traceable = new Definition(TraceableLanguageModel::class);
-            $traceable->setDecoratedService('llm_chain.llm.'.$name);
-            $traceable->addTag('llm_chain.traceable_llm');
-            $traceable->setArgument('$llm', new Reference('llm_chain.llm.'.$name.'.debug.inner'));
-            $traceable->setArgument('$name', $name);
-            $container->setDefinition('llm_chain.llm.'.$name.'.debug', $traceable);
+        $llmClass = match (strtolower($modelName)) {
+            'gpt' => GPT::class,
+            'claude' => Claude::class,
+            'llama' => Llama::class,
+            default => throw new \InvalidArgumentException(sprintf('Model "%s" is not supported.', $modelName)),
+        };
+        $llmDefinition = new Definition($llmClass);
+        if (null !== $version) {
+            $llmDefinition->setArgument('$version', $version);
         }
-    }
+        if (0 !== count($options)) {
+            $llmDefinition->setArgument('$options', $options);
+        }
+        $llmDefinition->addTag('llm_chain.model.language_model');
+        $container->setDefinition('llm_chain.chain.'.$name.'.llm', $llmDefinition);
 
-    /**
-     * @param array<string, mixed> $embeddings
-     */
-    private function processEmbeddingsConfig(string $name, array $embeddings, ContainerBuilder $container): void
-    {
-        $platform = isset($embeddings['platform']) ? 'llm_chain.platform.'.$embeddings['platform'] : Platform::class;
+        // CHAIN
+        $chainDefinition = (new ChildDefinition('llm_chain.chain.abstract'))
+            ->replaceArgument('$platform', new Reference($config['platform']))
+            ->replaceArgument('$llm', new Reference('llm_chain.chain.'.$name.'.llm'));
 
-        $definition = new ChildDefinition(Embeddings::class);
-        $definition->replaceArgument('$platform', new Reference($platform));
+        // TOOL & PROCESSOR
+        if (isset($config['tools']) && 0 !== count($config['tools'])) {
+            $tools = array_map(static fn (string $tool) => new Reference($tool), $config['tools']);
+            $toolboxDefinition = (new ChildDefinition('llm_chain.toolbox.abstract'))
+                ->replaceArgument('$tools', $tools);
+            $container->setDefinition('llm_chain.toolbox.'.$name, $toolboxDefinition);
 
-        $container->setDefinition('llm_chain.embeddings.'.$name, $definition);
+            if ($container->getParameter('kernel.debug')) {
+                $traceableToolboxDefinition = (new Definition('llm_chain.traceable_toolbox.'.$name))
+                    ->setClass(TraceableToolBox::class)
+                    ->setAutowired(true)
+                    ->setDecoratedService('llm_chain.toolbox.'.$name)
+                    ->addTag('llm_chain.traceable_toolbox');
+                $container->setDefinition('llm_chain.traceable_toolbox.'.$name, $traceableToolboxDefinition);
+            }
+
+            $toolProcessorDefinition = (new ChildDefinition('llm_chain.tool.chain_processor.abstract'))
+                ->replaceArgument('$toolBox', new Reference('llm_chain.toolbox.'.$name));
+            $container->setDefinition('llm_chain.tool.chain_processor.'.$name, $toolProcessorDefinition);
+
+            $chainDefinition->replaceArgument('$inputProcessor', [new Reference('llm_chain.tool.chain_processor.'.$name)]);
+            $chainDefinition->replaceArgument('$outputProcessor', [new Reference('llm_chain.tool.chain_processor.'.$name)]);
+        }
+
+        $container->setDefinition('llm_chain.chain.'.$name, $chainDefinition);
     }
 
     /**
      * @param array<string, mixed> $stores
      */
-    private function processStoreConfig(string $name, array $stores, ContainerBuilder $container): void
+    private function processStoreConfig(string $type, array $stores, ContainerBuilder $container): void
     {
-        if ('azure-search' === $stores['engine']) {
-            $definition = new ChildDefinition(AzureSearchStore::class);
-            $definition
-                ->replaceArgument('$endpointUrl', $stores['endpoint'])
-                ->replaceArgument('$apiKey', $stores['api_key'])
-                ->replaceArgument('$indexName', $stores['index_name'])
-                ->replaceArgument('$apiVersion', $stores['api_version']);
+        if ('azure_search' === $type) {
+            foreach ($stores as $name => $store) {
+                $definition = new Definition(AzureSearchStore::class);
+                $definition
+                    ->setAutowired(true)
+                    ->addTag('llm_chain.store')
+                    ->setArguments([
+                        '$endpointUrl' => $store['endpoint'],
+                        '$apiKey' => $store['api_key'],
+                        '$indexName' => $store['index_name'],
+                        '$apiVersion' => $store['api_version'],
+                        '$vectorFieldName' => $store['vector_field'],
+                    ]);
 
-            $container->setDefinition('llm_chain.store.'.$name, $definition);
+                $container->setDefinition('llm_chain.store.'.$type.'.'.$name, $definition);
+            }
         }
 
-        if ('chroma-db' === $stores['engine']) {
-            $definition = new ChildDefinition(ChromaDBStore::class);
-            $definition->replaceArgument('$collectionName', $stores['collection_name']);
+        if ('chroma_db' === $type) {
+            foreach ($stores as $name => $store) {
+                $definition = new Definition(ChromaDBStore::class);
+                $definition
+                    ->setAutowired(true)
+                    ->setArgument('$collectionName', $store['collection'])
+                    ->addTag('llm_chain.store');
 
-            $container->setDefinition('llm_chain.store.'.$name, $definition);
+                $container->setDefinition('llm_chain.store.'.$type.'.'.$name, $definition);
+            }
         }
 
-        if ('mongodb' === $stores['engine']) {
-            $definition = new ChildDefinition(MongoDBStore::class);
-            $definition
-                ->replaceArgument('$databaseName', $stores['database_name'])
-                ->replaceArgument('$collectionName', $stores['collection_name'])
-                ->replaceArgument('$indexName', $stores['index_name'])
-                ->replaceArgument('$vectorFieldName', $stores['vector_field_name'])
-                ->replaceArgument('$bulkWrite', $stores['bulk_write']);
+        if ('mongodb' === $type) {
+            foreach ($stores as $name => $store) {
+                $definition = new Definition(MongoDBStore::class);
+                $definition
+                    ->setAutowired(true)
+                    ->addTag('llm_chain.store')
+                    ->setArguments([
+                        '$databaseName' => $store['database'],
+                        '$collectionName' => $store['collection'],
+                        '$indexName' => $store['index_name'],
+                        '$vectorFieldName' => $store['vector_field'],
+                        '$bulkWrite' => $store['bulk_write'],
+                    ]);
 
-            $container->setDefinition('llm_chain.store.'.$name, $definition);
+                $container->setDefinition('llm_chain.store.'.$type.'.'.$name, $definition);
+            }
         }
 
-        if ('pinecone' === $stores['engine']) {
-            $definition = new ChildDefinition(PineconeStore::class);
-            $definition
-                ->replaceArgument('$namespace', $stores['namespace'] ?? null)
-                ->replaceArgument('$filter', $stores['filter'] ?? [])
-                ->replaceArgument('$topK', $stores['top_k'] ?? 3);
+        if ('pinecone' === $type) {
+            foreach ($stores as $name => $store) {
+                $definition = new Definition(PineconeStore::class);
+                $definition
+                    ->setAutowired(true)
+                    ->addTag('llm_chain.store')
+                    ->setArguments([
+                        '$namespace' => $store['namespace'],
+                        '$filter' => $store['filter'],
+                        '$topK' => $store['top_k'],
+                    ]);
 
-            $container->setDefinition('llm_chain.store.'.$name, $definition);
+                $container->setDefinition('llm_chain.store.'.$type.'.'.$name, $definition);
+            }
         }
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function processEmbedderConfig(int|string $name, array $config, ContainerBuilder $container): void
+    {
+        ['name' => $modelName, 'version' => $version, 'options' => $options] = $config['model'];
+
+        $modelClass = match (strtolower($modelName)) {
+            'embeddings' => Embeddings::class,
+            'voyage' => Voyage::class,
+            default => throw new \InvalidArgumentException(sprintf('Model "%s" is not supported.', $modelName)),
+        };
+        $modelDefinition = (new Definition($modelClass));
+        if (null !== $version) {
+            $modelDefinition->setArgument('$version', $version);
+        }
+        if (0 !== count($options)) {
+            $modelDefinition->setArgument('$options', $options);
+        }
+        $modelDefinition->addTag('llm_chain.model.embeddings_model');
+        $container->setDefinition('llm_chain.embedder.'.$name.'.embeddings', $modelDefinition);
+
+        $definition = (new ChildDefinition('llm_chain.embedder.abstract'))
+            ->replaceArgument('$embeddings', new Reference('llm_chain.embedder.'.$name.'.embeddings'));
+
+        $container->setDefinition('llm_chain.embedder.'.$name, $definition);
     }
 }

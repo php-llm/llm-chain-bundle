@@ -246,17 +246,22 @@ final class LlmChainExtension extends Extension
     {
         if ('azure_search' === $type) {
             foreach ($stores as $name => $store) {
+                $arguments = [
+                    '$endpointUrl' => $store['endpoint'],
+                    '$apiKey' => $store['api_key'],
+                    '$indexName' => $store['index_name'],
+                    '$apiVersion' => $store['api_version'],
+                ];
+
+                if (array_key_exists('vector_field', $store)) {
+                    $arguments['$vectorFieldName'] = $store['vector_field'];
+                }
+
                 $definition = new Definition(AzureSearchStore::class);
                 $definition
                     ->setAutowired(true)
                     ->addTag('llm_chain.store')
-                    ->setArguments([
-                        '$endpointUrl' => $store['endpoint'],
-                        '$apiKey' => $store['api_key'],
-                        '$indexName' => $store['index_name'],
-                        '$apiVersion' => $store['api_version'],
-                        '$vectorFieldName' => $store['vector_field'],
-                    ]);
+                    ->setArguments($arguments);
 
                 $container->setDefinition('llm_chain.store.'.$type.'.'.$name, $definition);
             }
@@ -276,17 +281,25 @@ final class LlmChainExtension extends Extension
 
         if ('mongodb' === $type) {
             foreach ($stores as $name => $store) {
+                $arguments = [
+                    '$databaseName' => $store['database'],
+                    '$collectionName' => $store['collection'],
+                    '$indexName' => $store['index_name'],
+                ];
+
+                if (array_key_exists('vector_field', $store)) {
+                    $arguments['$vectorFieldName'] = $store['vector_field'];
+                }
+
+                if (array_key_exists('bulk_write', $store)) {
+                    $arguments['$bulkWrite'] = $store['bulk_write'];
+                }
+
                 $definition = new Definition(MongoDBStore::class);
                 $definition
                     ->setAutowired(true)
                     ->addTag('llm_chain.store')
-                    ->setArguments([
-                        '$databaseName' => $store['database'],
-                        '$collectionName' => $store['collection'],
-                        '$indexName' => $store['index_name'],
-                        '$vectorFieldName' => $store['vector_field'],
-                        '$bulkWrite' => $store['bulk_write'],
-                    ]);
+                    ->setArguments($arguments);
 
                 $container->setDefinition('llm_chain.store.'.$type.'.'.$name, $definition);
             }
@@ -294,15 +307,23 @@ final class LlmChainExtension extends Extension
 
         if ('pinecone' === $type) {
             foreach ($stores as $name => $store) {
+                $arguments = [
+                    '$namespace' => $store['namespace'],
+                ];
+
+                if (array_key_exists('filter', $store)) {
+                    $arguments['$filter'] = $store['filter'];
+                }
+
+                if (array_key_exists('top_k', $store)) {
+                    $arguments['$topK'] = $store['top_k'];
+                }
+
                 $definition = new Definition(PineconeStore::class);
                 $definition
                     ->setAutowired(true)
                     ->addTag('llm_chain.store')
-                    ->setArguments([
-                        '$namespace' => $store['namespace'],
-                        '$filter' => $store['filter'],
-                        '$topK' => $store['top_k'],
-                    ]);
+                    ->setArguments($arguments);
 
                 $container->setDefinition('llm_chain.store.'.$type.'.'.$name, $definition);
             }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use PhpLlm\LlmChain\Chain;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ResponseFormatFactory;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ResponseFormatFactoryInterface;
@@ -15,7 +14,6 @@ use PhpLlm\LlmChain\Chain\ToolBox\ToolAnalyzer;
 use PhpLlm\LlmChain\Chain\ToolBox\ToolBox;
 use PhpLlm\LlmChain\Chain\ToolBox\ToolBoxInterface;
 use PhpLlm\LlmChain\Embedder;
-use PhpLlm\LlmChain\PlatformInterface;
 use PhpLlm\LlmChainBundle\Profiler\DataCollector;
 use PhpLlm\LlmChainBundle\Profiler\TraceableToolBox;
 
@@ -25,14 +23,6 @@ return static function (ContainerConfigurator $container) {
             ->autowire()
 
         // high level feature
-        ->set('llm_chain.chain.abstract', Chain::class)
-            ->abstract()
-            ->args([
-                '$platform' => service(PlatformInterface::class),
-                '$llm' => abstract_arg('Language model'),
-                '$inputProcessor' => tagged_iterator('llm_chain.chain.input_processor'),
-                '$outputProcessor' => tagged_iterator('llm_chain.chain.output_processor'),
-            ])
         ->set('llm_chain.embedder.abstract', Embedder::class)
             ->abstract()
             ->args([

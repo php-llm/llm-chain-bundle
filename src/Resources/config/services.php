@@ -44,6 +44,8 @@ return static function (ContainerConfigurator $container) {
             ->alias(ResponseFormatFactoryInterface::class, ResponseFormatFactory::class)
         ->set(SchemaFactory::class)
         ->set(StructureOutputProcessor::class)
+            ->tag('llm_chain.chain.input_processor')
+            ->tag('llm_chain.chain.output_processor')
 
         // tools
         ->set('llm_chain.toolbox.abstract')
@@ -68,6 +70,8 @@ return static function (ContainerConfigurator $container) {
             ])
         ->set(ToolProcessor::class)
             ->parent('llm_chain.tool.chain_processor.abstract')
+            ->tag('llm_chain.chain.input_processor')
+            ->tag('llm_chain.chain.output_processor')
             ->args([
                 '$toolBox' => service(ToolBoxInterface::class),
             ])

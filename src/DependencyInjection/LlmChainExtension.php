@@ -51,7 +51,7 @@ final class LlmChainExtension extends Extension
 
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
-        foreach ($config['platform'] as $type => $platform) {
+        foreach ($config['platform'] ?? [] as $type => $platform) {
             $this->processPlatformConfig($type, $platform, $container);
         }
         $platforms = array_keys($container->findTaggedServiceIds('llm_chain.platform'));
@@ -80,7 +80,7 @@ final class LlmChainExtension extends Extension
             $container->setAlias(LanguageModel::class, reset($llms));
         }
 
-        foreach ($config['store'] as $type => $store) {
+        foreach ($config['store'] ?? [] as $type => $store) {
             $this->processStoreConfig($type, $store, $container);
         }
         $stores = array_keys($container->findTaggedServiceIds('llm_chain.store'));

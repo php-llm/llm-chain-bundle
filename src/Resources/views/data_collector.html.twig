@@ -101,9 +101,9 @@
                                 <tr>
                                     <th>Input</th>
                                     <td>
-                                        {% if call.input is iterable %}{# expect MessageBag #}
+                                        {% if call.input.messages is defined %}{# expect MessageBag #}
                                             <ol>
-                                                {% for message in call.input %}
+                                                {% for message in call.input.messages %}
                                                     <li>
                                                         <strong>{{ message.role.value|title }}:</strong>
                                                         {% if 'assistant' == message.role.value and message.hasToolCalls%}
@@ -153,7 +153,7 @@
                                 <tr>
                                     <th>Response</th>
                                     <td>
-                                        {% if call.input is iterable and call.response.content is iterable %}{# expect array of ToolCall #}
+                                        {% if call.input.messages is defined and call.response.content is iterable %}{# expect array of ToolCall #}
                                             {{ _self.tool_calls(call.response.content) }}
                                         {% elseif call.response.content is iterable %}{# expect array of Vectors #}
                                             <ol>

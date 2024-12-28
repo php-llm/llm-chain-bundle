@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": ">=8.2",
-        "php-llm/llm-chain": "^0.9.3 || ^0.10.0",
+        "php-llm/llm-chain": "^0.11",
         "symfony/config": "^6.4 || ^7.0",
         "symfony/dependency-injection": "^6.4 || ^7.0",
         "symfony/framework-bundle": "^6.4 || ^7.0"

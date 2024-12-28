@@ -133,6 +133,8 @@ final class LlmChainExtension extends Extension
             $definition = (new Definition(Platform::class))
                 ->setFactory(OpenAIPlatformFactory::class.'::create')
                 ->setAutowired(true)
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments(['$apiKey' => $platform['api_key']])
                 ->addTag('llm_chain.platform');
 
@@ -147,6 +149,8 @@ final class LlmChainExtension extends Extension
                 $definition = (new Definition(Platform::class))
                     ->setFactory(AzureOpenAIPlatformFactory::class.'::create')
                     ->setAutowired(true)
+                    ->setLazy(true)
+                    ->addTag('proxy', ['interface' => PlatformInterface::class])
                     ->setArguments([
                         '$baseUrl' => $config['base_url'],
                         '$deployment' => $config['deployment'],
@@ -166,6 +170,8 @@ final class LlmChainExtension extends Extension
             $definition = (new Definition(Platform::class))
                 ->setFactory(AnthropicPlatformFactory::class.'::create')
                 ->setAutowired(true)
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     '$apiKey' => $platform['api_key'],
                 ])

@@ -50,7 +50,7 @@ llm_chain:
             platform: 'llm_chain.platform.anthropic'
             model:
                 name: 'Claude'
-            tools: # Unconfigured all tools are injected into the chain, use "[]" to have no tools.
+            tools: # Unconfigured all tools are injected into the chain, use "[]" or "false" to have no tools.
                 - 'PhpLlm\LlmChain\Chain\ToolBox\Tool\Wikipedia'
     store:
         # also azure_search, mongodb and pinecone are supported as store type

@@ -63,6 +63,7 @@ final class Configuration implements ConfigurationInterface
                                     ->end()
                                 ->end()
                             ->end()
+                            ->booleanNode('structured_output')->defaultTrue()->end()
                             ->arrayNode('tools')
                                 ->beforeNormalization()
                                     ->ifTrue(fn ($v) => false === $v)

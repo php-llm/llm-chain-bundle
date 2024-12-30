@@ -16,8 +16,10 @@ use PhpLlm\LlmChain\Bridge\OpenAI\GPT;
 use PhpLlm\LlmChain\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
 use PhpLlm\LlmChain\Bridge\Pinecone\Store as PineconeStore;
 use PhpLlm\LlmChain\Bridge\Voyage\Voyage;
+use PhpLlm\LlmChain\Chain;
 use PhpLlm\LlmChain\Chain\InputProcessor;
 use PhpLlm\LlmChain\Chain\OutputProcessor;
+use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
 use PhpLlm\LlmChain\Chain\ToolBox\Attribute\AsTool;
 use PhpLlm\LlmChain\ChainInterface;
 use PhpLlm\LlmChain\Embedder;
@@ -214,12 +216,15 @@ final class LlmChainExtension extends Extension
         $container->setDefinition('llm_chain.chain.'.$name.'.llm', $llmDefinition);
 
         // CHAIN
-        $chainDefinition = (new ChildDefinition('llm_chain.chain.abstract'))
-            ->replaceArgument('$platform', new Reference($config['platform']))
-            ->replaceArgument('$llm', new Reference('llm_chain.chain.'.$name.'.llm'));
+        $chainDefinition = (new Definition(Chain::class))
+            ->setArgument('$platform', new Reference($config['platform']))
+            ->setArgument('$llm', new Reference('llm_chain.chain.'.$name.'.llm'));
+
+        $inputProcessor = [];
+        $outputProcessor = [];
 
         // TOOL & PROCESSOR
-        if (isset($config['tools']) && 0 !== count($config['tools'])) {
+        if (0 !== count($config['tools'])) {
             $tools = array_map(static fn (string $tool) => new Reference($tool), $config['tools']);
             $toolboxDefinition = (new ChildDefinition('llm_chain.toolbox.abstract'))
                 ->replaceArgument('$tools', $tools);
@@ -238,9 +243,18 @@ final class LlmChainExtension extends Extension
                 ->replaceArgument('$toolBox', new Reference('llm_chain.toolbox.'.$name));
             $container->setDefinition('llm_chain.tool.chain_processor.'.$name, $toolProcessorDefinition);
 
-            $chainDefinition->replaceArgument('$inputProcessor', [new Reference('llm_chain.tool.chain_processor.'.$name)]);
-            $chainDefinition->replaceArgument('$outputProcessor', [new Reference('llm_chain.tool.chain_processor.'.$name)]);
+            $inputProcessor[] = new Reference('llm_chain.tool.chain_processor.'.$name);
+            $outputProcessor[] = new Reference('llm_chain.tool.chain_processor.'.$name);
         }
+
+        // STRUCTURED OUTPUT
+        if ($config['structured_output']) {
+            $inputProcessor[] = new Reference(StructureOutputProcessor::class);
+            $outputProcessor[] = new Reference(StructureOutputProcessor::class);
+        }
+        $chainDefinition
+            ->setArgument('$inputProcessor', $inputProcessor)
+            ->setArgument('$outputProcessor', $outputProcessor);
 
         $container->setDefinition('llm_chain.chain.'.$name, $chainDefinition);
     }

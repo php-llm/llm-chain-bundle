@@ -41,6 +41,7 @@ llm_chain:
     chain:
         rag:
             platform: 'llm_chain.platform.azure.gpt_deployment'
+            structured_output: false # Disables support for "output_structure" option, default is true
             model:
                 name: 'GPT'
                 version: 'gpt-4o-mini'
@@ -50,7 +51,7 @@ llm_chain:
             platform: 'llm_chain.platform.anthropic'
             model:
                 name: 'Claude'
-            tools: # Unconfigured all tools are injected into the chain, use "[]" or "false" to have no tools.
+            tools: # If undefined, all tools are injected into the chain, use "[]" or "false" to have no tools.
                 - 'PhpLlm\LlmChain\Chain\ToolBox\Tool\Wikipedia'
     store:
         # also azure_search, mongodb and pinecone are supported as store type

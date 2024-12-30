@@ -51,7 +51,7 @@ llm_chain:
             platform: 'llm_chain.platform.anthropic'
             model:
                 name: 'Claude'
-            tools: # If undefined, all tools are injected into the chain, use "[]" or "false" to have no tools.
+            tools: # If undefined, all tools are injected into the chain, use "tools: false" to disable tools.
                 - 'PhpLlm\LlmChain\Chain\ToolBox\Tool\Wikipedia'
     store:
         # also azure_search, mongodb and pinecone are supported as store type
@@ -127,6 +127,25 @@ final class CompanyName
         return 'ACME Corp.'
     }
 }
+```
+
+The chain configuration by default will inject all known tools into the chain.
+
+To disable this behavior, set the `tools` option to `false`:
+```yaml
+llm_chain:
+    chain:
+        my_chain:
+            tools: false
+```
+
+To inject only specific tools, list them in the configuration:
+```yaml
+llm_chain:
+    chain:
+        my_chain:
+            tools:
+                - 'PhpLlm\LlmChain\Chain\ToolBox\Tool\SimilaritySearch'
 ```
 
 ### Profiler

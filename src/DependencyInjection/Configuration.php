@@ -65,11 +65,25 @@ final class Configuration implements ConfigurationInterface
                             ->end()
                             ->booleanNode('structured_output')->defaultTrue()->end()
                             ->arrayNode('tools')
+                                ->addDefaultsIfNotSet()
+                                ->treatFalseLike(['enabled' => false])
+                                ->treatTrueLike(['enabled' => true])
+                                ->treatNullLike(['enabled' => true])
                                 ->beforeNormalization()
-                                    ->ifTrue(fn ($v) => false === $v)
-                                    ->then(fn () => [])
+                                    ->ifArray()
+                                    ->then(function (array $v) {
+                                        return [
+                                            'enabled' => $v['enabled'] ?? true,
+                                            'services' => $v['services'] ?? $v,
+                                        ];
+                                    })
                                 ->end()
-                                ->scalarPrototype()->end()
+                                ->children()
+                                    ->booleanNode('enabled')->defaultTrue()->end()
+                                    ->arrayNode('services')
+                                        ->scalarPrototype()->end()
+                                    ->end()
+                                ->end()
                             ->end()
                         ->end()
                     ->end()

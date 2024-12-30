@@ -21,6 +21,7 @@ use PhpLlm\LlmChain\Chain\InputProcessor;
 use PhpLlm\LlmChain\Chain\OutputProcessor;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
 use PhpLlm\LlmChain\Chain\ToolBox\Attribute\AsTool;
+use PhpLlm\LlmChain\Chain\ToolBox\ChainProcessor as ToolProcessor;
 use PhpLlm\LlmChain\ChainInterface;
 use PhpLlm\LlmChain\Embedder;
 use PhpLlm\LlmChain\Model\EmbeddingsModel;
@@ -224,27 +225,33 @@ final class LlmChainExtension extends Extension
         $outputProcessor = [];
 
         // TOOL & PROCESSOR
-        if (0 !== count($config['tools'])) {
-            $tools = array_map(static fn (string $tool) => new Reference($tool), $config['tools']);
-            $toolboxDefinition = (new ChildDefinition('llm_chain.toolbox.abstract'))
-                ->replaceArgument('$tools', $tools);
-            $container->setDefinition('llm_chain.toolbox.'.$name, $toolboxDefinition);
+        if ($config['tools']['enabled']) {
+            // Create specific tool box and process if tools are explicitly defined
+            if (0 !== count($config['tools']['services'])) {
+                $tools = array_map(static fn (string $tool) => new Reference($tool), $config['tools']['services']);
+                $toolboxDefinition = (new ChildDefinition('llm_chain.toolbox.abstract'))
+                    ->replaceArgument('$tools', $tools);
+                $container->setDefinition('llm_chain.toolbox.'.$name, $toolboxDefinition);
 
-            if ($container->getParameter('kernel.debug')) {
-                $traceableToolboxDefinition = (new Definition('llm_chain.traceable_toolbox.'.$name))
-                    ->setClass(TraceableToolBox::class)
-                    ->setAutowired(true)
-                    ->setDecoratedService('llm_chain.toolbox.'.$name)
-                    ->addTag('llm_chain.traceable_toolbox');
-                $container->setDefinition('llm_chain.traceable_toolbox.'.$name, $traceableToolboxDefinition);
+                if ($container->getParameter('kernel.debug')) {
+                    $traceableToolboxDefinition = (new Definition('llm_chain.traceable_toolbox.'.$name))
+                        ->setClass(TraceableToolBox::class)
+                        ->setAutowired(true)
+                        ->setDecoratedService('llm_chain.toolbox.'.$name)
+                        ->addTag('llm_chain.traceable_toolbox');
+                    $container->setDefinition('llm_chain.traceable_toolbox.'.$name, $traceableToolboxDefinition);
+                }
+
+                $toolProcessorDefinition = (new ChildDefinition('llm_chain.tool.chain_processor.abstract'))
+                    ->replaceArgument('$toolBox', new Reference('llm_chain.toolbox.'.$name));
+                $container->setDefinition('llm_chain.tool.chain_processor.'.$name, $toolProcessorDefinition);
+
+                $inputProcessor[] = new Reference('llm_chain.tool.chain_processor.'.$name);
+                $outputProcessor[] = new Reference('llm_chain.tool.chain_processor.'.$name);
+            } else {
+                $inputProcessor[] = new Reference(ToolProcessor::class);
+                $outputProcessor[] = new Reference(ToolProcessor::class);
             }
-
-            $toolProcessorDefinition = (new ChildDefinition('llm_chain.tool.chain_processor.abstract'))
-                ->replaceArgument('$toolBox', new Reference('llm_chain.toolbox.'.$name));
-            $container->setDefinition('llm_chain.tool.chain_processor.'.$name, $toolProcessorDefinition);
-
-            $inputProcessor[] = new Reference('llm_chain.tool.chain_processor.'.$name);
-            $outputProcessor[] = new Reference('llm_chain.tool.chain_processor.'.$name);
         }
 
         // STRUCTURED OUTPUT

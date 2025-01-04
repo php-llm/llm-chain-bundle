@@ -18,6 +18,7 @@ use PhpLlm\LlmChain\Bridge\Pinecone\Store as PineconeStore;
 use PhpLlm\LlmChain\Bridge\Voyage\Voyage;
 use PhpLlm\LlmChain\Chain;
 use PhpLlm\LlmChain\Chain\InputProcessor;
+use PhpLlm\LlmChain\Chain\InputProcessor\SystemPromptInputProcessor;
 use PhpLlm\LlmChain\Chain\OutputProcessor;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
 use PhpLlm\LlmChain\Chain\ToolBox\Attribute\AsTool;
@@ -259,6 +260,17 @@ final class LlmChainExtension extends Extension
             $inputProcessors[] = new Reference(StructureOutputProcessor::class);
             $outputProcessors[] = new Reference(StructureOutputProcessor::class);
         }
+
+        // SYSTEM PROMPT
+        if (is_string($config['system_prompt'])) {
+            $systemPromptInputProcessorDefinition = new Definition(SystemPromptInputProcessor::class);
+            $systemPromptInputProcessorDefinition
+                ->setAutowired(true)
+                ->setArgument('$systemPrompt', $config['system_prompt']);
+
+            $inputProcessor[] = $systemPromptInputProcessorDefinition;
+        }
+
         $chainDefinition
             ->setArgument('$inputProcessors', $inputProcessors)
             ->setArgument('$outputProcessors', $outputProcessors);

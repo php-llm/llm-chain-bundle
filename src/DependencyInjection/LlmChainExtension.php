@@ -219,6 +219,7 @@ final class LlmChainExtension extends Extension
 
         // CHAIN
         $chainDefinition = (new Definition(Chain::class))
+            ->setAutowired(true)
             ->setArgument('$platform', new Reference($config['platform']))
             ->setArgument('$llm', new Reference('llm_chain.chain.'.$name.'.llm'));
 

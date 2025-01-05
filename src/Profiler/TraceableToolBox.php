@@ -30,7 +30,7 @@ final class TraceableToolBox implements ToolBoxInterface
         return $this->toolBox->getMap();
     }
 
-    public function execute(ToolCall $toolCall): string
+    public function execute(ToolCall $toolCall): mixed
     {
         $result = $this->toolBox->execute($toolCall);
 

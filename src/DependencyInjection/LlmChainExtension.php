@@ -260,8 +260,8 @@ final class LlmChainExtension extends Extension
             $outputProcessors[] = new Reference(StructureOutputProcessor::class);
         }
         $chainDefinition
-            ->setArgument('$inputProcessor', $inputProcessors)
-            ->setArgument('$outputProcessor', $outputProcessors);
+            ->setArgument('$inputProcessors', $inputProcessors)
+            ->setArgument('$outputProcessors', $outputProcessors);
 
         $container->setDefinition('llm_chain.chain.'.$name, $chainDefinition);
     }

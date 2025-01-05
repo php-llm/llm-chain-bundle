@@ -40,6 +40,7 @@ return static function (ContainerConfigurator $container) {
         // tools
         ->set('llm_chain.toolbox.abstract')
             ->class(ToolBox::class)
+            ->autowire()
             ->abstract()
             ->args([
                 '$tools' => abstract_arg('Collection of tools'),
@@ -64,6 +65,7 @@ return static function (ContainerConfigurator $container) {
             ->tag('llm_chain.chain.output_processor')
             ->args([
                 '$toolBox' => service(ToolBoxInterface::class),
+                '$eventDispatcher' => service('event_dispatcher')->nullOnInvalid(),
             ])
 
         // profiler

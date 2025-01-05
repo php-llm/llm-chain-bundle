@@ -221,8 +221,8 @@ final class LlmChainExtension extends Extension
             ->setArgument('$platform', new Reference($config['platform']))
             ->setArgument('$llm', new Reference('llm_chain.chain.'.$name.'.llm'));
 
-        $inputProcessor = [];
-        $outputProcessor = [];
+        $inputProcessors = [];
+        $outputProcessors = [];
 
         // TOOL & PROCESSOR
         if ($config['tools']['enabled']) {
@@ -246,22 +246,22 @@ final class LlmChainExtension extends Extension
                     ->replaceArgument('$toolBox', new Reference('llm_chain.toolbox.'.$name));
                 $container->setDefinition('llm_chain.tool.chain_processor.'.$name, $toolProcessorDefinition);
 
-                $inputProcessor[] = new Reference('llm_chain.tool.chain_processor.'.$name);
-                $outputProcessor[] = new Reference('llm_chain.tool.chain_processor.'.$name);
+                $inputProcessors[] = new Reference('llm_chain.tool.chain_processor.'.$name);
+                $outputProcessors[] = new Reference('llm_chain.tool.chain_processor.'.$name);
             } else {
-                $inputProcessor[] = new Reference(ToolProcessor::class);
-                $outputProcessor[] = new Reference(ToolProcessor::class);
+                $inputProcessors[] = new Reference(ToolProcessor::class);
+                $outputProcessors[] = new Reference(ToolProcessor::class);
             }
         }
 
         // STRUCTURED OUTPUT
         if ($config['structured_output']) {
-            $inputProcessor[] = new Reference(StructureOutputProcessor::class);
-            $outputProcessor[] = new Reference(StructureOutputProcessor::class);
+            $inputProcessors[] = new Reference(StructureOutputProcessor::class);
+            $outputProcessors[] = new Reference(StructureOutputProcessor::class);
         }
         $chainDefinition
-            ->setArgument('$inputProcessor', $inputProcessor)
-            ->setArgument('$outputProcessor', $outputProcessor);
+            ->setArgument('$inputProcessors', $inputProcessors)
+            ->setArgument('$outputProcessors', $outputProcessors);
 
         $container->setDefinition('llm_chain.chain.'.$name, $chainDefinition);
     }

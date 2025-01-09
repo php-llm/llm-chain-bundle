@@ -393,6 +393,8 @@ final class LlmChainExtension extends Extension
         $container->setDefinition('llm_chain.embedder.'.$name.'.embeddings', $modelDefinition);
 
         $definition = (new ChildDefinition('llm_chain.embedder.abstract'))
+            ->replaceArgument('$platform', new Reference($config['platform']))
+            ->replaceArgument('$store', new Reference($config['store']))
             ->replaceArgument('$embeddings', new Reference('llm_chain.embedder.'.$name.'.embeddings'));
 
         $container->setDefinition('llm_chain.embedder.'.$name, $definition);

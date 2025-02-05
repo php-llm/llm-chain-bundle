@@ -11,15 +11,15 @@
     ],
     "require": {
         "php": ">=8.2",
-        "php-llm/llm-chain": "^0.14",
+        "php-llm/llm-chain": "^0.15",
         "symfony/config": "^6.4 || ^7.0",
         "symfony/dependency-injection": "^6.4 || ^7.0",
         "symfony/framework-bundle": "^6.4 || ^7.0",
         "symfony/string": "^6.4 || ^7.0"
     },
     "require-dev": {
-        "php-cs-fixer/shim": "^3.65",
-        "phpstan/phpstan": "^2.0",
+        "php-cs-fixer/shim": "^3.68",
+        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.5"
     },
     "config": {

@@ -9,6 +9,8 @@ use PhpLlm\LlmChain\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory
 use PhpLlm\LlmChain\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIPlatformFactory;
 use PhpLlm\LlmChain\Bridge\Azure\Store\SearchStore as AzureSearchStore;
 use PhpLlm\LlmChain\Bridge\ChromaDB\Store as ChromaDBStore;
+use PhpLlm\LlmChain\Bridge\Google\Gemini;
+use PhpLlm\LlmChain\Bridge\Google\PlatformFactory as GooglePlatformFactory;
 use PhpLlm\LlmChain\Bridge\Meta\Llama;
 use PhpLlm\LlmChain\Bridge\MongoDB\Store as MongoDBStore;
 use PhpLlm\LlmChain\Bridge\OpenAI\Embeddings;
@@ -23,6 +25,7 @@ use PhpLlm\LlmChain\Chain\OutputProcessor;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
 use PhpLlm\LlmChain\Chain\ToolBox\Attribute\AsTool;
 use PhpLlm\LlmChain\Chain\ToolBox\ChainProcessor as ToolProcessor;
+use PhpLlm\LlmChain\Chain\ToolBox\FaultTolerantToolBox;
 use PhpLlm\LlmChain\ChainInterface;
 use PhpLlm\LlmChain\Embedder;
 use PhpLlm\LlmChain\Model\EmbeddingsModel;
@@ -132,15 +135,21 @@ final class LlmChainExtension extends Extension
      */
     private function processPlatformConfig(string $type, array $platform, ContainerBuilder $container): void
     {
-        if ('openai' === $type) {
-            $platformId = 'llm_chain.platform.openai';
+        if ('anthropic' === $type) {
+            $platformId = 'llm_chain.platform.anthropic';
             $definition = (new Definition(Platform::class))
-                ->setFactory(OpenAIPlatformFactory::class.'::create')
+                ->setFactory(AnthropicPlatformFactory::class.'::create')
                 ->setAutowired(true)
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
-                ->setArguments(['$apiKey' => $platform['api_key']])
+                ->setArguments([
+                    '$apiKey' => $platform['api_key'],
+                ])
                 ->addTag('llm_chain.platform');
+
+            if (isset($platform['version'])) {
+                $definition->replaceArgument('$version', $platform['version']);
+            }
 
             $container->setDefinition($platformId, $definition);
 
@@ -169,21 +178,30 @@ final class LlmChainExtension extends Extension
             return;
         }
 
-        if ('anthropic' === $type) {
-            $platformId = 'llm_chain.platform.anthropic';
+        if ('google' === $type) {
+            $platformId = 'llm_chain.platform.google';
             $definition = (new Definition(Platform::class))
-                ->setFactory(AnthropicPlatformFactory::class.'::create')
+                ->setFactory(GooglePlatformFactory::class.'::create')
                 ->setAutowired(true)
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
-                ->setArguments([
-                    '$apiKey' => $platform['api_key'],
-                ])
+                ->setArguments(['$apiKey' => $platform['api_key']])
                 ->addTag('llm_chain.platform');
 
-            if (isset($platform['version'])) {
-                $definition->replaceArgument('$version', $platform['version']);
-            }
+            $container->setDefinition($platformId, $definition);
+
+            return;
+        }
+
+        if ('openai' === $type) {
+            $platformId = 'llm_chain.platform.openai';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(OpenAIPlatformFactory::class.'::create')
+                ->setAutowired(true)
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->setArguments(['$apiKey' => $platform['api_key']])
+                ->addTag('llm_chain.platform');
 
             $container->setDefinition($platformId, $definition);
 
@@ -205,6 +223,7 @@ final class LlmChainExtension extends Extension
             'gpt' => GPT::class,
             'claude' => Claude::class,
             'llama' => Llama::class,
+            'gemini' => Gemini::class,
             default => throw new \InvalidArgumentException(sprintf('Model "%s" is not supported.', $modelName)),
         };
         $llmDefinition = new Definition($llmClass);
@@ -234,6 +253,14 @@ final class LlmChainExtension extends Extension
                 $toolboxDefinition = (new ChildDefinition('llm_chain.toolbox.abstract'))
                     ->replaceArgument('$tools', $tools);
                 $container->setDefinition('llm_chain.toolbox.'.$name, $toolboxDefinition);
+
+                if ($config['fault_tolerant_toolbox']) {
+                    $faultTolerantToolboxDefinition = (new Definition('llm_chain.fault_tolerant_toolbox.'.$name))
+                        ->setClass(FaultTolerantToolBox::class)
+                        ->setAutowired(true)
+                        ->setDecoratedService('llm_chain.toolbox.'.$name);
+                    $container->setDefinition('llm_chain.fault_tolerant_toolbox.'.$name, $faultTolerantToolboxDefinition);
+                }
 
                 if ($container->getParameter('kernel.debug')) {
                     $traceableToolboxDefinition = (new Definition('llm_chain.traceable_toolbox.'.$name))

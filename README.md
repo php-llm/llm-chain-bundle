@@ -24,7 +24,7 @@ llm_chain:
                 name: 'GPT'
 ```
 
-### Advanced Example with Anthropic, Azure and multiple chains
+### Advanced Example with Anthropic, Azure, Google and multiple chains
 ```yaml
 # config/packages/llm_chain.yaml
 llm_chain:
@@ -38,6 +38,8 @@ llm_chain:
                 deployment: '%env(AZURE_OPENAI_GPT)%'
                 api_key: '%env(AZURE_OPENAI_KEY)%'
                 api_version: '%env(AZURE_GPT_VERSION)%'
+        google:
+            api_key: '%env(GOOGLE_API_KEY)%'
     chain:
         rag:
             platform: 'llm_chain.platform.azure.gpt_deployment'
@@ -54,6 +56,7 @@ llm_chain:
                 name: 'Claude'
             tools: # If undefined, all tools are injected into the chain, use "tools: false" to disable tools.
                 - 'PhpLlm\LlmChain\Chain\ToolBox\Tool\Wikipedia'
+            fault_tolerant_toolbox: false # Disables fault tolerant toolbox, default is true
     store:
         # also azure_search, mongodb and pinecone are supported as store type
         chroma_db:
@@ -112,6 +115,8 @@ services:
     PhpLlm\LlmChain\Chain\ToolBox\Tool\SerpApi:
         $apiKey: '%env(SERP_API_KEY)%'
     PhpLlm\LlmChain\Chain\ToolBox\Tool\SimilaritySearch: ~
+    PhpLlm\LlmChain\Chain\ToolBox\Tool\Tavily:
+      $apiKey: '%env(TAVILY_API_KEY)%'
     PhpLlm\LlmChain\Chain\ToolBox\Tool\Wikipedia: ~
     PhpLlm\LlmChain\Chain\ToolBox\Tool\YouTubeTranscriber: ~
 ```

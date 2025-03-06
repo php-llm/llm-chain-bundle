@@ -296,6 +296,11 @@ final class LlmChainExtension extends Extension
                 ->setAutowired(true)
                 ->setArgument('$systemPrompt', $config['system_prompt']);
 
+            if ($config['include_tools']) {
+                $systemPromptInputProcessorDefinition
+                    ->setArgument('$toolBox', new Reference('llm_chain.toolbox.'.$name));
+            }
+
             $inputProcessors[] = $systemPromptInputProcessorDefinition;
         }
 

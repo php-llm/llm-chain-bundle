@@ -7,9 +7,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ResponseFormatFactory;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ResponseFormatFactoryInterface;
-use PhpLlm\LlmChain\Chain\StructuredOutput\SchemaFactory;
 use PhpLlm\LlmChain\Chain\ToolBox\ChainProcessor as ToolProcessor;
-use PhpLlm\LlmChain\Chain\ToolBox\ParameterAnalyzer;
 use PhpLlm\LlmChain\Chain\ToolBox\ToolAnalyzer;
 use PhpLlm\LlmChain\Chain\ToolBox\ToolBox;
 use PhpLlm\LlmChain\Chain\ToolBox\ToolBoxInterface;
@@ -32,7 +30,6 @@ return static function (ContainerConfigurator $container) {
         // structured output
         ->set(ResponseFormatFactory::class)
             ->alias(ResponseFormatFactoryInterface::class, ResponseFormatFactory::class)
-        ->set(SchemaFactory::class)
         ->set(StructureOutputProcessor::class)
             ->tag('llm_chain.chain.input_processor')
             ->tag('llm_chain.chain.output_processor')
@@ -52,7 +49,6 @@ return static function (ContainerConfigurator $container) {
             ])
             ->alias(ToolBoxInterface::class, ToolBox::class)
         ->set(ToolAnalyzer::class)
-        ->set(ParameterAnalyzer::class)
         ->set('llm_chain.tool.chain_processor.abstract')
             ->class(ToolProcessor::class)
             ->abstract()

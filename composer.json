@@ -7,11 +7,15 @@
         {
             "name": "Christopher Hertel",
             "email": "mail@christopher-hertel.de"
+        },
+        {
+            "name": "Oskar Stark",
+            "email": "oskarstark@googlemail.com"
         }
     ],
     "require": {
         "php": ">=8.2",
-        "php-llm/llm-chain": "^0.16",
+        "php-llm/llm-chain": "^0.17",
         "symfony/config": "^6.4 || ^7.0",
         "symfony/dependency-injection": "^6.4 || ^7.0",
         "symfony/framework-bundle": "^6.4 || ^7.0",

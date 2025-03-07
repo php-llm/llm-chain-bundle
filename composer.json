@@ -24,7 +24,8 @@
     "require-dev": {
         "php-cs-fixer/shim": "^3.69",
         "phpstan/phpstan": "^2.1",
-        "phpunit/phpunit": "^11.5"
+        "phpunit/phpunit": "^11.5",
+        "rector/rector": "^2.0"
     },
     "config": {
         "sort-packages": true

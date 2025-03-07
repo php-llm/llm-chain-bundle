@@ -52,7 +52,7 @@ final class TraceableToolBoxTest extends TestCase
     {
         return new class($metadata) implements ToolBoxInterface {
             public function __construct(
-                private array $metadata,
+                private readonly array $metadata,
             ) {
             }
 

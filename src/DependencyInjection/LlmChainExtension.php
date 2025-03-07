@@ -219,7 +219,7 @@ final class LlmChainExtension extends Extension
         // MODEL
         ['name' => $modelName, 'version' => $version, 'options' => $options] = $config['model'];
 
-        $llmClass = match (strtolower($modelName)) {
+        $llmClass = match (strtolower((string) $modelName)) {
             'gpt' => GPT::class,
             'claude' => Claude::class,
             'llama' => Llama::class,
@@ -404,7 +404,7 @@ final class LlmChainExtension extends Extension
     {
         ['name' => $modelName, 'version' => $version, 'options' => $options] = $config['model'];
 
-        $modelClass = match (strtolower($modelName)) {
+        $modelClass = match (strtolower((string) $modelName)) {
             'embeddings' => Embeddings::class,
             'voyage' => Voyage::class,
             default => throw new \InvalidArgumentException(sprintf('Model "%s" is not supported.', $modelName)),

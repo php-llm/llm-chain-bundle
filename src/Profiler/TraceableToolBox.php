@@ -21,7 +21,7 @@ final class TraceableToolBox implements ToolBoxInterface
     public array $calls = [];
 
     public function __construct(
-        private ToolBoxInterface $toolBox,
+        private readonly ToolBoxInterface $toolBox,
     ) {
     }
 

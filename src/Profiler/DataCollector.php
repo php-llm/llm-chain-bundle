@@ -20,12 +20,12 @@ final class DataCollector extends AbstractDataCollector
     /**
      * @var TraceablePlatform[]
      */
-    private array $platforms;
+    private readonly array $platforms;
 
     /**
      * @var TraceableToolBox[]
      */
-    private array $toolBoxes;
+    private readonly array $toolBoxes;
 
     /**
      * @param TraceablePlatform[] $platforms

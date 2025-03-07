@@ -15,7 +15,7 @@ use PhpLlm\LlmChain\Embedder;
 use PhpLlm\LlmChainBundle\Profiler\DataCollector;
 use PhpLlm\LlmChainBundle\Profiler\TraceableToolBox;
 
-return static function (ContainerConfigurator $container) {
+return static function (ContainerConfigurator $container): void {
     $container->services()
         ->defaults()
             ->autowire()

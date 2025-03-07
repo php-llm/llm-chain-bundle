@@ -48,6 +48,7 @@ llm_chain:
                 name: 'GPT'
                 version: 'gpt-4o-mini'
             system_prompt: 'You are a helpful assistant that can answer questions.' # The default system prompt of the chain
+            include_tools: true # Include tool definitions at the end of the system prompt 
             tools:
                 - 'PhpLlm\LlmChain\Chain\ToolBox\Tool\SimilaritySearch'
         research:

@@ -8,7 +8,8 @@ use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProc
 use PhpLlm\LlmChain\Chain\StructuredOutput\ResponseFormatFactory;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ResponseFormatFactoryInterface;
 use PhpLlm\LlmChain\Chain\ToolBox\ChainProcessor as ToolProcessor;
-use PhpLlm\LlmChain\Chain\ToolBox\ToolAnalyzer;
+use PhpLlm\LlmChain\Chain\ToolBox\MetadataFactory;
+use PhpLlm\LlmChain\Chain\ToolBox\MetadataFactory\ReflectionFactory;
 use PhpLlm\LlmChain\Chain\ToolBox\ToolBox;
 use PhpLlm\LlmChain\Chain\ToolBox\ToolBoxInterface;
 use PhpLlm\LlmChain\Embedder;
@@ -48,7 +49,8 @@ return static function (ContainerConfigurator $container): void {
                 '$tools' => tagged_iterator('llm_chain.tool'),
             ])
             ->alias(ToolBoxInterface::class, ToolBox::class)
-        ->set(ToolAnalyzer::class)
+        ->set(ReflectionFactory::class)
+            ->alias(MetadataFactory::class, ReflectionFactory::class)
         ->set('llm_chain.tool.chain_processor.abstract')
             ->class(ToolProcessor::class)
             ->abstract()

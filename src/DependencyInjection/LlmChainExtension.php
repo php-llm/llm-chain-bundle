@@ -26,6 +26,10 @@ use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProc
 use PhpLlm\LlmChain\Chain\Toolbox\Attribute\AsTool;
 use PhpLlm\LlmChain\Chain\Toolbox\ChainProcessor as ToolProcessor;
 use PhpLlm\LlmChain\Chain\Toolbox\FaultTolerantToolbox;
+use PhpLlm\LlmChain\Chain\Toolbox\MetadataFactory\ChainFactory;
+use PhpLlm\LlmChain\Chain\Toolbox\MetadataFactory\MemoryFactory;
+use PhpLlm\LlmChain\Chain\Toolbox\MetadataFactory\ReflectionFactory;
+use PhpLlm\LlmChain\Chain\Toolbox\Tool\Chain as ChainTool;
 use PhpLlm\LlmChain\ChainInterface;
 use PhpLlm\LlmChain\Embedder;
 use PhpLlm\LlmChain\Model\EmbeddingsModel;
@@ -249,9 +253,30 @@ final class LlmChainExtension extends Extension
         if ($config['tools']['enabled']) {
             // Create specific toolbox and process if tools are explicitly defined
             if (0 !== count($config['tools']['services'])) {
-                $tools = array_map(static fn (string $tool) => new Reference($tool), $config['tools']['services']);
+                $memoryFactoryDefinition = new Definition(MemoryFactory::class);
+                $container->setDefinition('llm_chain.toolbox.'.$name.'.memory_factory', $memoryFactoryDefinition);
+                $chainFactoryDefinition = new Definition(ChainFactory::class, [
+                    '$factories' => [new Reference('llm_chain.toolbox.'.$name.'.memory_factory'), new Reference(ReflectionFactory::class)],
+                ]);
+                $container->setDefinition('llm_chain.toolbox.'.$name.'.chain_factory', $chainFactoryDefinition);
+
+                $tools = [];
+                foreach ($config['tools']['services'] as $tool) {
+                    $reference = new Reference($tool['service']);
+                    // We use the memory factory in case method, description and name are set
+                    if (isset($tool['name'], $tool['description'])) {
+                        if ($tool['is_chain']) {
+                            $chainWrapperDefinition = new Definition(ChainTool::class, ['$chain' => $reference]);
+                            $container->setDefinition('llm_chain.toolbox.'.$name.'.chain_wrapper.'.$tool['name'], $chainWrapperDefinition);
+                            $reference = new Reference('llm_chain.toolbox.'.$name.'.chain_wrapper.'.$tool['name']);
+                        }
+                        $memoryFactoryDefinition->addMethodCall('addTool', [$reference, $tool['name'], $tool['description'], $tool['method'] ?? '__invoke']);
+                    }
+                    $tools[] = $reference;
+                }
 
                 $toolboxDefinition = (new ChildDefinition('llm_chain.toolbox.abstract'))
+                    ->replaceArgument('$metadataFactory', new Reference('llm_chain.toolbox.'.$name.'.chain_factory'))
                     ->replaceArgument('$tools', $tools);
                 $container->setDefinition('llm_chain.toolbox.'.$name, $toolboxDefinition);
 

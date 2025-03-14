@@ -20,7 +20,7 @@ final class TraceableToolBoxTest extends TestCase
     #[Test]
     public function getMap(): void
     {
-        $metadata = new Metadata('Foo\Bar', 'bar', 'description', '__invoke', null);
+        $metadata = new Metadata('bar', 'description', '__invoke', null);
         $toolBox = $this->createToolBox(['tool' => $metadata]);
         $traceableToolBox = new TraceableToolBox($toolBox);
 
@@ -32,7 +32,7 @@ final class TraceableToolBoxTest extends TestCase
     #[Test]
     public function execute(): void
     {
-        $metadata = new Metadata('Foo\Bar', 'bar', 'description', '__invoke', null);
+        $metadata = new Metadata('bar', 'description', '__invoke', null);
         $toolBox = $this->createToolBox(['tool' => $metadata]);
         $traceableToolBox = new TraceableToolBox($toolBox);
         $toolCall = new ToolCall('foo', '__invoke');

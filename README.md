@@ -51,13 +51,23 @@ llm_chain:
             include_tools: true # Include tool definitions at the end of the system prompt 
             tools:
                 - 'PhpLlm\LlmChain\Chain\ToolBox\Tool\SimilaritySearch'
+                - service: 'App\Chain\Tool\CompanyName'
+                  name: 'company_name'
+                  description: 'Provides the name of your company'
+                  method: '__invoke'
+                - 'llm_chain.chain.research'
         research:
             platform: 'llm_chain.platform.anthropic'
             model:
                 name: 'Claude'
             tools: # If undefined, all tools are injected into the chain, use "tools: false" to disable tools.
                 - 'PhpLlm\LlmChain\Chain\ToolBox\Tool\Wikipedia'
+                - 'App\Chain\Tool\CompanyName'
             fault_tolerant_toolbox: false # Disables fault tolerant toolbox, default is true
+            as_tool:
+                name: 'wikipedia_research'
+                description: 'Answers questions based on a research in Wikipedia'
+                input: 'Question to be researched'
     store:
         # also azure_search, mongodb and pinecone are supported as store type
         chroma_db:
@@ -71,6 +81,11 @@ llm_chain:
             model:
                 name: 'Embeddings'
                 version: 'text-embedding-ada-002'
+    tools:
+        - service: 'App\Chain\Tool\CompanyName'
+          name: 'company_name'
+          description: 'Provides the name of your company'
+          method: '__invoke'
 ```
 
 ## Usage

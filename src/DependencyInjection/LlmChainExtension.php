@@ -23,9 +23,9 @@ use PhpLlm\LlmChain\Chain\InputProcessor;
 use PhpLlm\LlmChain\Chain\InputProcessor\SystemPromptInputProcessor;
 use PhpLlm\LlmChain\Chain\OutputProcessor;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
-use PhpLlm\LlmChain\Chain\ToolBox\Attribute\AsTool;
-use PhpLlm\LlmChain\Chain\ToolBox\ChainProcessor as ToolProcessor;
-use PhpLlm\LlmChain\Chain\ToolBox\FaultTolerantToolBox;
+use PhpLlm\LlmChain\Chain\Toolbox\Attribute\AsTool;
+use PhpLlm\LlmChain\Chain\Toolbox\ChainProcessor as ToolProcessor;
+use PhpLlm\LlmChain\Chain\Toolbox\FaultTolerantToolbox;
 use PhpLlm\LlmChain\ChainInterface;
 use PhpLlm\LlmChain\Embedder;
 use PhpLlm\LlmChain\Model\EmbeddingsModel;
@@ -38,7 +38,7 @@ use PhpLlm\LlmChain\Store\StoreInterface;
 use PhpLlm\LlmChain\Store\VectorStoreInterface;
 use PhpLlm\LlmChainBundle\Profiler\DataCollector;
 use PhpLlm\LlmChainBundle\Profiler\TraceablePlatform;
-use PhpLlm\LlmChainBundle\Profiler\TraceableToolBox;
+use PhpLlm\LlmChainBundle\Profiler\TraceableToolbox;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -126,7 +126,7 @@ final class LlmChainExtension extends Extension
 
         if (false === $container->getParameter('kernel.debug')) {
             $container->removeDefinition(DataCollector::class);
-            $container->removeDefinition(TraceableToolBox::class);
+            $container->removeDefinition(TraceableToolbox::class);
         }
     }
 
@@ -247,16 +247,17 @@ final class LlmChainExtension extends Extension
 
         // TOOL & PROCESSOR
         if ($config['tools']['enabled']) {
-            // Create specific tool box and process if tools are explicitly defined
+            // Create specific toolbox and process if tools are explicitly defined
             if (0 !== count($config['tools']['services'])) {
                 $tools = array_map(static fn (string $tool) => new Reference($tool), $config['tools']['services']);
+
                 $toolboxDefinition = (new ChildDefinition('llm_chain.toolbox.abstract'))
                     ->replaceArgument('$tools', $tools);
                 $container->setDefinition('llm_chain.toolbox.'.$name, $toolboxDefinition);
 
                 if ($config['fault_tolerant_toolbox']) {
                     $faultTolerantToolboxDefinition = (new Definition('llm_chain.fault_tolerant_toolbox.'.$name))
-                        ->setClass(FaultTolerantToolBox::class)
+                        ->setClass(FaultTolerantToolbox::class)
                         ->setAutowired(true)
                         ->setDecoratedService('llm_chain.toolbox.'.$name);
                     $container->setDefinition('llm_chain.fault_tolerant_toolbox.'.$name, $faultTolerantToolboxDefinition);
@@ -264,7 +265,7 @@ final class LlmChainExtension extends Extension
 
                 if ($container->getParameter('kernel.debug')) {
                     $traceableToolboxDefinition = (new Definition('llm_chain.traceable_toolbox.'.$name))
-                        ->setClass(TraceableToolBox::class)
+                        ->setClass(TraceableToolbox::class)
                         ->setAutowired(true)
                         ->setDecoratedService('llm_chain.toolbox.'.$name)
                         ->addTag('llm_chain.traceable_toolbox');
@@ -272,7 +273,7 @@ final class LlmChainExtension extends Extension
                 }
 
                 $toolProcessorDefinition = (new ChildDefinition('llm_chain.tool.chain_processor.abstract'))
-                    ->replaceArgument('$toolBox', new Reference('llm_chain.toolbox.'.$name));
+                    ->replaceArgument('$toolbox', new Reference('llm_chain.toolbox.'.$name));
                 $container->setDefinition('llm_chain.tool.chain_processor.'.$name, $toolProcessorDefinition);
 
                 $inputProcessors[] = new Reference('llm_chain.tool.chain_processor.'.$name);
@@ -298,7 +299,7 @@ final class LlmChainExtension extends Extension
 
             if ($config['include_tools']) {
                 $systemPromptInputProcessorDefinition
-                    ->setArgument('$toolBox', new Reference('llm_chain.toolbox.'.$name));
+                    ->setArgument('$toolbox', new Reference('llm_chain.toolbox.'.$name));
             }
 
             $inputProcessors[] = $systemPromptInputProcessorDefinition;
@@ -424,10 +425,11 @@ final class LlmChainExtension extends Extension
         $modelDefinition->addTag('llm_chain.model.embeddings_model');
         $container->setDefinition('llm_chain.embedder.'.$name.'.embeddings', $modelDefinition);
 
-        $definition = (new ChildDefinition('llm_chain.embedder.abstract'))
-            ->replaceArgument('$platform', new Reference($config['platform']))
-            ->replaceArgument('$store', new Reference($config['store']))
-            ->replaceArgument('$embeddings', new Reference('llm_chain.embedder.'.$name.'.embeddings'));
+        $definition = new Definition(Embedder::class, [
+            '$embeddings' => new Reference('llm_chain.embedder.'.$name.'.embeddings'),
+            '$platform' => new Reference($config['platform']),
+            '$store' => new Reference($config['store']),
+        ]);
 
         $container->setDefinition('llm_chain.embedder.'.$name, $definition);
     }

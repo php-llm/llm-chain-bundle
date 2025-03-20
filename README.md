@@ -56,7 +56,7 @@ llm_chain:
             model:
                 name: 'Claude'
             tools: # If undefined, all tools are injected into the chain, use "tools: false" to disable tools.
-                - 'PhpLlm\LlmChain\Chain\ToolBox\Tool\Wikipedia'
+                - 'PhpLlm\LlmChain\Chain\Toolbox\Tool\Wikipedia'
             fault_tolerant_toolbox: false # Disables fault tolerant toolbox, default is true
     store:
         # also azure_search, mongodb and pinecone are supported as store type
@@ -111,20 +111,21 @@ services:
         autowire: true
         autoconfigure: true
 
-    PhpLlm\LlmChain\Chain\ToolBox\Tool\Clock: ~
-    PhpLlm\LlmChain\Chain\ToolBox\Tool\OpenMeteo: ~
-    PhpLlm\LlmChain\Chain\ToolBox\Tool\SerpApi:
+    PhpLlm\LlmChain\Chain\Toolbox\Tool\Clock: ~
+    PhpLlm\LlmChain\Chain\Toolbox\Tool\OpenMeteo: ~
+    PhpLlm\LlmChain\Chain\Toolbox\Tool\SerpApi:
         $apiKey: '%env(SERP_API_KEY)%'
-    PhpLlm\LlmChain\Chain\ToolBox\Tool\SimilaritySearch: ~
-    PhpLlm\LlmChain\Chain\ToolBox\Tool\Tavily:
+    PhpLlm\LlmChain\Chain\Toolbox\Tool\SimilaritySearch: ~
+    PhpLlm\LlmChain\Chain\Toolbox\Tool\Tavily:
       $apiKey: '%env(TAVILY_API_KEY)%'
-    PhpLlm\LlmChain\Chain\ToolBox\Tool\Wikipedia: ~
-    PhpLlm\LlmChain\Chain\ToolBox\Tool\YouTubeTranscriber: ~
+    PhpLlm\LlmChain\Chain\Toolbox\Tool\Wikipedia: ~
+    PhpLlm\LlmChain\Chain\Toolbox\Tool\YouTubeTranscriber: ~
 ```
 
 Custom tools can be registered by using the `#[AsTool]` attribute:
+
 ```php
-use PhpLlm\LlmChain\Chain\ToolBox\Attribute\AsTool;
+use PhpLlm\LlmChain\Chain\Toolbox\Attribute\AsTool;
 
 #[AsTool('company_name', 'Provides the name of your company')]
 final class CompanyName
@@ -152,7 +153,7 @@ llm_chain:
     chain:
         my_chain:
             tools:
-                - 'PhpLlm\LlmChain\Chain\ToolBox\Tool\SimilaritySearch'
+                - 'PhpLlm\LlmChain\Chain\Toolbox\Tool\SimilaritySearch'
 ```
 
 ### Profiler

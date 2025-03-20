@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\Profiler;
 
-use PhpLlm\LlmChain\Chain\ToolBox\Metadata;
-use PhpLlm\LlmChain\Chain\ToolBox\ToolBoxInterface;
+use PhpLlm\LlmChain\Chain\Toolbox\Metadata;
+use PhpLlm\LlmChain\Chain\Toolbox\ToolboxInterface;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @phpstan-import-type PlatformCallData from TraceablePlatform
- * @phpstan-import-type ToolCallData from TraceableToolBox
+ * @phpstan-import-type ToolCallData from TraceableToolbox
  */
 final class DataCollector extends AbstractDataCollector
 {
@@ -23,23 +23,23 @@ final class DataCollector extends AbstractDataCollector
     private readonly array $platforms;
 
     /**
-     * @var TraceableToolBox[]
+     * @var TraceableToolbox[]
      */
-    private readonly array $toolBoxes;
+    private readonly array $toolboxes;
 
     /**
      * @param TraceablePlatform[] $platforms
-     * @param TraceableToolBox[]  $toolBoxes
+     * @param TraceableToolbox[]  $toolboxes
      */
     public function __construct(
         #[TaggedIterator('llm_chain.traceable_platform')]
         iterable $platforms,
-        private readonly ToolBoxInterface $defaultToolBox,
+        private readonly ToolboxInterface $defaultToolBox,
         #[TaggedIterator('llm_chain.traceable_toolbox')]
-        iterable $toolBoxes,
+        iterable $toolboxes,
     ) {
         $this->platforms = $platforms instanceof \Traversable ? iterator_to_array($platforms) : $platforms;
-        $this->toolBoxes = $toolBoxes instanceof \Traversable ? iterator_to_array($toolBoxes) : $toolBoxes;
+        $this->toolboxes = $toolboxes instanceof \Traversable ? iterator_to_array($toolboxes) : $toolboxes;
     }
 
     public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
@@ -47,7 +47,7 @@ final class DataCollector extends AbstractDataCollector
         $this->data = [
             'tools' => $this->defaultToolBox->getMap(),
             'platform_calls' => array_merge(...array_map(fn (TraceablePlatform $platform) => $platform->calls, $this->platforms)),
-            'tool_calls' => array_merge(...array_map(fn (TraceableToolBox $toolBox) => $toolBox->calls, $this->toolBoxes)),
+            'tool_calls' => array_merge(...array_map(fn (TraceableToolbox $toolbox) => $toolbox->calls, $this->toolboxes)),
         ];
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\Profiler;
 
-use PhpLlm\LlmChain\Chain\ToolBox\ToolBoxInterface;
+use PhpLlm\LlmChain\Chain\Toolbox\ToolboxInterface;
 use PhpLlm\LlmChain\Model\Response\ToolCall;
 
 /**
@@ -13,7 +13,7 @@ use PhpLlm\LlmChain\Model\Response\ToolCall;
  *     result: string,
  * }
  */
-final class TraceableToolBox implements ToolBoxInterface
+final class TraceableToolbox implements ToolboxInterface
 {
     /**
      * @var ToolCallData[]
@@ -21,18 +21,18 @@ final class TraceableToolBox implements ToolBoxInterface
     public array $calls = [];
 
     public function __construct(
-        private readonly ToolBoxInterface $toolBox,
+        private readonly ToolboxInterface $toolbox,
     ) {
     }
 
     public function getMap(): array
     {
-        return $this->toolBox->getMap();
+        return $this->toolbox->getMap();
     }
 
     public function execute(ToolCall $toolCall): mixed
     {
-        $result = $this->toolBox->execute($toolCall);
+        $result = $this->toolbox->execute($toolCall);
 
         $this->calls[] = [
             'call' => $toolCall,

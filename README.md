@@ -50,7 +50,20 @@ llm_chain:
             system_prompt: 'You are a helpful assistant that can answer questions.' # The default system prompt of the chain
             include_tools: true # Include tool definitions at the end of the system prompt 
             tools:
-                - 'PhpLlm\LlmChain\Chain\ToolBox\Tool\SimilaritySearch'
+                # Referencing a service with #[AsTool] attribute
+                - 'PhpLlm\LlmChain\Chain\Toolbox\Tool\SimilaritySearch'
+                
+                # Referencing a service without #[AsTool] attribute
+                - service: 'App\Chain\Tool\CompanyName'
+                  name: 'company_name'
+                  description: 'Provides the name of your company'
+                  method: 'foo' # Optional with default value '__invoke'
+                
+                # Referencing a chain => chain in chain 🤯
+                - service: 'llm_chain.chain.research'
+                  name: 'wikipedia_research'
+                  description: 'Can research on Wikipedia'
+                  is_chain: true
         research:
             platform: 'llm_chain.platform.anthropic'
             model:

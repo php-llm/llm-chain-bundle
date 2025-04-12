@@ -320,12 +320,10 @@ final class LlmChainExtension extends Extension
             $systemPromptInputProcessorDefinition = new Definition(SystemPromptInputProcessor::class);
             $systemPromptInputProcessorDefinition
                 ->setAutowired(true)
-                ->setArgument('$systemPrompt', $config['system_prompt']);
-
-            if ($config['include_tools']) {
-                $systemPromptInputProcessorDefinition
-                    ->setArgument('$toolbox', new Reference('llm_chain.toolbox.'.$name));
-            }
+                ->setArguments([
+                    '$systemPrompt' => $config['system_prompt'],
+                    '$toolbox' => $config['include_tools'] ? new Reference('llm_chain.toolbox.'.$name) : null,
+                ]);
 
             $inputProcessors[] = $systemPromptInputProcessorDefinition;
         }

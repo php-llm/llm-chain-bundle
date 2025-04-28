@@ -232,7 +232,7 @@ final class LlmChainExtension extends Extension
         };
         $llmDefinition = new Definition($llmClass);
         if (null !== $version) {
-            $llmDefinition->setArgument('$version', $version);
+            $llmDefinition->setArgument('$name', $version);
         }
         if (0 !== count($options)) {
             $llmDefinition->setArgument('$options', $options);
@@ -440,7 +440,7 @@ final class LlmChainExtension extends Extension
         };
         $modelDefinition = (new Definition($modelClass));
         if (null !== $version) {
-            $modelDefinition->setArgument('$version', $version);
+            $modelDefinition->setArgument('$name', $version);
         }
         if (0 !== count($options)) {
             $modelDefinition->setArgument('$options', $options);

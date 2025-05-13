@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\Profiler;
 
+use PhpLlm\LlmChain\Model\Message\Content\File;
 use PhpLlm\LlmChain\Model\Model;
 use PhpLlm\LlmChain\Model\Response\AsyncResponse;
 use PhpLlm\LlmChain\Model\Response\ResponseInterface;
@@ -32,6 +33,10 @@ final class TraceablePlatform implements PlatformInterface
     public function request(Model $model, array|string|object $input, array $options = []): ResponseInterface
     {
         $response = $this->platform->request($model, $input, $options);
+
+        if ($input instanceof File) {
+            $input = $input::class.': '.$input->getFormat();
+        }
 
         $this->calls[] = [
             'model' => $model,

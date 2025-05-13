@@ -6,7 +6,6 @@ use Rector\Config\RectorConfig;
 use Rector\Php74\Rector\Closure\ClosureToArrowFunctionRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitSelfCallRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
-use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertCountWithZeroToAssertEmptyRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
 
 return RectorConfig::configure()
@@ -25,7 +24,6 @@ return RectorConfig::configure()
     ])
     ->withImportNames(importShortClasses: false)
     ->withSkip([
-        AssertCountWithZeroToAssertEmptyRector::class,
         ClosureToArrowFunctionRector::class,
         PreferPHPUnitThisCallRector::class,
     ])

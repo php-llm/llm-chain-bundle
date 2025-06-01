@@ -33,7 +33,7 @@ return static function (ContainerConfigurator $container): void {
             ->autowire()
             ->abstract()
             ->args([
-                '$metadataFactory' => service(ToolFactoryInterface::class),
+                '$toolFactory' => service(ToolFactoryInterface::class),
                 '$tools' => abstract_arg('Collection of tools'),
             ])
         ->set(Toolbox::class)

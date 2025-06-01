@@ -213,28 +213,28 @@ final class LlmChainExtension extends Extension
         // MODEL
         ['name' => $modelName, 'version' => $version, 'options' => $options] = $config['model'];
 
-        $llmClass = match (strtolower((string) $modelName)) {
+        $modelClass = match (strtolower((string) $modelName)) {
             'gpt' => GPT::class,
             'claude' => Claude::class,
             'llama' => Llama::class,
             'gemini' => Gemini::class,
             default => throw new \InvalidArgumentException(sprintf('Model "%s" is not supported.', $modelName)),
         };
-        $llmDefinition = new Definition($llmClass);
+        $modelDefinition = new Definition($modelClass);
         if (null !== $version) {
-            $llmDefinition->setArgument('$name', $version);
+            $modelDefinition->setArgument('$name', $version);
         }
         if (0 !== count($options)) {
-            $llmDefinition->setArgument('$options', $options);
+            $modelDefinition->setArgument('$options', $options);
         }
-        $llmDefinition->addTag('llm_chain.model.language_model');
-        $container->setDefinition('llm_chain.chain.'.$name.'.llm', $llmDefinition);
+        $modelDefinition->addTag('llm_chain.model.language_model');
+        $container->setDefinition('llm_chain.chain.'.$name.'.model', $modelDefinition);
 
         // CHAIN
         $chainDefinition = (new Definition(Chain::class))
             ->setAutowired(true)
             ->setArgument('$platform', new Reference($config['platform']))
-            ->setArgument('$llm', new Reference('llm_chain.chain.'.$name.'.llm'));
+            ->setArgument('$model', new Reference('llm_chain.chain.'.$name.'.model'));
 
         $inputProcessors = [];
         $outputProcessors = [];
@@ -266,7 +266,7 @@ final class LlmChainExtension extends Extension
                 }
 
                 $toolboxDefinition = (new ChildDefinition('llm_chain.toolbox.abstract'))
-                    ->replaceArgument('$metadataFactory', new Reference('llm_chain.toolbox.'.$name.'.chain_factory'))
+                    ->replaceArgument('$toolFactory', new Reference('llm_chain.toolbox.'.$name.'.chain_factory'))
                     ->replaceArgument('$tools', $tools);
                 $container->setDefinition('llm_chain.toolbox.'.$name, $toolboxDefinition);
 
@@ -436,10 +436,10 @@ final class LlmChainExtension extends Extension
             $modelDefinition->setArgument('$options', $options);
         }
         $modelDefinition->addTag('llm_chain.model.embeddings_model');
-        $container->setDefinition('llm_chain.embedder.'.$name.'.embeddings', $modelDefinition);
+        $container->setDefinition('llm_chain.embedder.'.$name.'.model', $modelDefinition);
 
         $definition = new Definition(Embedder::class, [
-            '$embeddings' => new Reference('llm_chain.embedder.'.$name.'.embeddings'),
+            '$model' => new Reference('llm_chain.embedder.'.$name.'.model'),
             '$platform' => new Reference($config['platform']),
             '$store' => new Reference($config['store']),
         ]);

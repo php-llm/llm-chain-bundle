@@ -153,16 +153,16 @@
                                 <tr>
                                     <th>Response</th>
                                     <td>
-                                        {% if call.input.messages is defined and call.response.content is iterable %}{# expect array of ToolCall #}
-                                            {{ _self.tool_calls(call.response.content) }}
-                                        {% elseif call.response.content is iterable %}{# expect array of Vectors #}
+                                        {% if call.input.messages is defined and call.response is iterable %}{# expect array of ToolCall #}
+                                            {{ _self.tool_calls(call.response) }}
+                                        {% elseif call.response is iterable %}{# expect array of Vectors #}
                                             <ol>
-                                                {% for vector in call.response.content %}
+                                                {% for vector in call.response %}
                                                     <li>Vector with <strong>{{ vector.dimensions }}</strong> dimensions</li>
                                                 {% endfor %}
                                             </ol>
                                         {% else %}
-                                            {{ call.response.content }}
+                                            {{ call.response }}
                                         {% endif %}
                                     </td>
                                 </tr>

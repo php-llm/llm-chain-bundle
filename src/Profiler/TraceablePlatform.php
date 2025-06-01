@@ -7,7 +7,6 @@ namespace PhpLlm\LlmChainBundle\Profiler;
 use PhpLlm\LlmChain\Platform\Message\Content\File;
 use PhpLlm\LlmChain\Platform\Model;
 use PhpLlm\LlmChain\Platform\PlatformInterface;
-use PhpLlm\LlmChain\Platform\Response\AsyncResponse;
 use PhpLlm\LlmChain\Platform\Response\ResponseInterface;
 
 /**
@@ -42,7 +41,7 @@ final class TraceablePlatform implements PlatformInterface
             'model' => $model,
             'input' => is_object($input) ? clone $input : $input,
             'options' => $options,
-            'response' => $response instanceof AsyncResponse ? $response->unwrap() : $response,
+            'response' => $response->getContent(),
         ];
 
         return $response;

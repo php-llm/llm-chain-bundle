@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhpLlm\LlmChainBundle\Profiler;
 
 use PhpLlm\LlmChain\Chain\Toolbox\ToolboxInterface;
-use PhpLlm\LlmChain\Model\Response\ToolCall;
+use PhpLlm\LlmChain\Platform\Response\ToolCall;
 
 /**
  * @phpstan-type ToolCallData array{
@@ -25,9 +25,9 @@ final class TraceableToolbox implements ToolboxInterface
     ) {
     }
 
-    public function getMap(): array
+    public function getTools(): array
     {
-        return $this->toolbox->getMap();
+        return $this->toolbox->getTools();
     }
 
     public function execute(ToolCall $toolCall): mixed

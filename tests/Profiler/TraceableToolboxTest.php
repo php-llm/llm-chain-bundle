@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\Tests\Profiler;
 
-use PhpLlm\LlmChain\Chain\Toolbox\ExecutionReference;
-use PhpLlm\LlmChain\Chain\Toolbox\Metadata;
 use PhpLlm\LlmChain\Chain\Toolbox\ToolboxInterface;
-use PhpLlm\LlmChain\Model\Response\ToolCall;
+use PhpLlm\LlmChain\Platform\Response\ToolCall;
+use PhpLlm\LlmChain\Platform\Tool\ExecutionReference;
+use PhpLlm\LlmChain\Platform\Tool\Tool;
 use PhpLlm\LlmChainBundle\Profiler\TraceableToolbox;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Small;
@@ -21,11 +21,11 @@ final class TraceableToolboxTest extends TestCase
     #[Test]
     public function getMap(): void
     {
-        $metadata = new Metadata(new ExecutionReference('Foo\Bar'), 'bar', 'description', null);
+        $metadata = new Tool(new ExecutionReference('Foo\Bar'), 'bar', 'description', null);
         $toolbox = $this->createToolbox(['tool' => $metadata]);
         $traceableToolbox = new TraceableToolbox($toolbox);
 
-        $map = $traceableToolbox->getMap();
+        $map = $traceableToolbox->getTools();
 
         self::assertSame(['tool' => $metadata], $map);
     }
@@ -33,7 +33,7 @@ final class TraceableToolboxTest extends TestCase
     #[Test]
     public function execute(): void
     {
-        $metadata = new Metadata(new ExecutionReference('Foo\Bar'), 'bar', 'description', null);
+        $metadata = new Tool(new ExecutionReference('Foo\Bar'), 'bar', 'description', null);
         $toolbox = $this->createToolbox(['tool' => $metadata]);
         $traceableToolbox = new TraceableToolbox($toolbox);
         $toolCall = new ToolCall('foo', '__invoke');
@@ -47,19 +47,19 @@ final class TraceableToolboxTest extends TestCase
     }
 
     /**
-     * @param Metadata[] $metadata
+     * @param Tool[] $tools
      */
-    private function createToolbox(array $metadata): ToolboxInterface
+    private function createToolbox(array $tools): ToolboxInterface
     {
-        return new class($metadata) implements ToolboxInterface {
+        return new class($tools) implements ToolboxInterface {
             public function __construct(
-                private readonly array $metadata,
+                private readonly array $tools,
             ) {
             }
 
-            public function getMap(): array
+            public function getTools(): array
             {
-                return $this->metadata;
+                return $this->tools;
             }
 
             public function execute(ToolCall $toolCall): string

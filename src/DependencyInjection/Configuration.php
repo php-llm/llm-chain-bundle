@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\DependencyInjection;
 
-use PhpLlm\LlmChain\PlatformInterface;
+use PhpLlm\LlmChain\Platform\PlatformInterface;
 use PhpLlm\LlmChain\Store\StoreInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;

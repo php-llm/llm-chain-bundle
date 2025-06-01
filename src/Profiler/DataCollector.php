@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\Profiler;
 
-use PhpLlm\LlmChain\Chain\Toolbox\Metadata;
 use PhpLlm\LlmChain\Chain\Toolbox\ToolboxInterface;
+use PhpLlm\LlmChain\Platform\Tool\Tool;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use Symfony\Component\HttpFoundation\Request;
@@ -45,7 +45,7 @@ final class DataCollector extends AbstractDataCollector
     public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
     {
         $this->data = [
-            'tools' => $this->defaultToolBox->getMap(),
+            'tools' => $this->defaultToolBox->getTools(),
             'platform_calls' => array_merge(...array_map(fn (TraceablePlatform $platform) => $platform->calls, $this->platforms)),
             'tool_calls' => array_merge(...array_map(fn (TraceableToolbox $toolbox) => $toolbox->calls, $this->toolboxes)),
         ];
@@ -65,7 +65,7 @@ final class DataCollector extends AbstractDataCollector
     }
 
     /**
-     * @return Metadata[]
+     * @return Tool[]
      */
     public function getTools(): array
     {

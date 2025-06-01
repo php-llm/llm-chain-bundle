@@ -4,40 +4,38 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\DependencyInjection;
 
-use PhpLlm\LlmChain\Bridge\Anthropic\Claude;
-use PhpLlm\LlmChain\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
-use PhpLlm\LlmChain\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIPlatformFactory;
-use PhpLlm\LlmChain\Bridge\Azure\Store\SearchStore as AzureSearchStore;
-use PhpLlm\LlmChain\Bridge\ChromaDB\Store as ChromaDBStore;
-use PhpLlm\LlmChain\Bridge\Google\Gemini;
-use PhpLlm\LlmChain\Bridge\Google\PlatformFactory as GooglePlatformFactory;
-use PhpLlm\LlmChain\Bridge\Meta\Llama;
-use PhpLlm\LlmChain\Bridge\MongoDB\Store as MongoDBStore;
-use PhpLlm\LlmChain\Bridge\OpenAI\Embeddings;
-use PhpLlm\LlmChain\Bridge\OpenAI\GPT;
-use PhpLlm\LlmChain\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
-use PhpLlm\LlmChain\Bridge\Pinecone\Store as PineconeStore;
-use PhpLlm\LlmChain\Bridge\Voyage\Voyage;
-use PhpLlm\LlmChain\Chain;
-use PhpLlm\LlmChain\Chain\InputProcessor;
+use PhpLlm\LlmChain\Chain\Chain;
+use PhpLlm\LlmChain\Chain\ChainInterface;
 use PhpLlm\LlmChain\Chain\InputProcessor\SystemPromptInputProcessor;
-use PhpLlm\LlmChain\Chain\OutputProcessor;
+use PhpLlm\LlmChain\Chain\InputProcessorInterface;
+use PhpLlm\LlmChain\Chain\OutputProcessorInterface;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
 use PhpLlm\LlmChain\Chain\Toolbox\Attribute\AsTool;
 use PhpLlm\LlmChain\Chain\Toolbox\ChainProcessor as ToolProcessor;
 use PhpLlm\LlmChain\Chain\Toolbox\FaultTolerantToolbox;
-use PhpLlm\LlmChain\Chain\Toolbox\MetadataFactory\ChainFactory;
-use PhpLlm\LlmChain\Chain\Toolbox\MetadataFactory\MemoryFactory;
-use PhpLlm\LlmChain\Chain\Toolbox\MetadataFactory\ReflectionFactory;
 use PhpLlm\LlmChain\Chain\Toolbox\Tool\Chain as ChainTool;
-use PhpLlm\LlmChain\ChainInterface;
-use PhpLlm\LlmChain\Embedder;
-use PhpLlm\LlmChain\Model\EmbeddingsModel;
-use PhpLlm\LlmChain\Model\LanguageModel;
-use PhpLlm\LlmChain\Platform;
-use PhpLlm\LlmChain\Platform\ModelClient;
-use PhpLlm\LlmChain\Platform\ResponseConverter;
-use PhpLlm\LlmChain\PlatformInterface;
+use PhpLlm\LlmChain\Chain\Toolbox\ToolFactory\ChainFactory;
+use PhpLlm\LlmChain\Chain\Toolbox\ToolFactory\MemoryToolFactory;
+use PhpLlm\LlmChain\Chain\Toolbox\ToolFactory\ReflectionToolFactory;
+use PhpLlm\LlmChain\Platform\Bridge\Anthropic\Claude;
+use PhpLlm\LlmChain\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
+use PhpLlm\LlmChain\Platform\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIPlatformFactory;
+use PhpLlm\LlmChain\Platform\Bridge\Google\Gemini;
+use PhpLlm\LlmChain\Platform\Bridge\Google\PlatformFactory as GooglePlatformFactory;
+use PhpLlm\LlmChain\Platform\Bridge\Meta\Llama;
+use PhpLlm\LlmChain\Platform\Bridge\OpenAI\Embeddings;
+use PhpLlm\LlmChain\Platform\Bridge\OpenAI\GPT;
+use PhpLlm\LlmChain\Platform\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
+use PhpLlm\LlmChain\Platform\Bridge\Voyage\Voyage;
+use PhpLlm\LlmChain\Platform\ModelClientInterface;
+use PhpLlm\LlmChain\Platform\Platform;
+use PhpLlm\LlmChain\Platform\PlatformInterface;
+use PhpLlm\LlmChain\Platform\ResponseConverterInterface;
+use PhpLlm\LlmChain\Store\Bridge\Azure\SearchStore as AzureSearchStore;
+use PhpLlm\LlmChain\Store\Bridge\ChromaDB\Store as ChromaDBStore;
+use PhpLlm\LlmChain\Store\Bridge\MongoDB\Store as MongoDBStore;
+use PhpLlm\LlmChain\Store\Bridge\Pinecone\Store as PineconeStore;
+use PhpLlm\LlmChain\Store\Embedder;
 use PhpLlm\LlmChain\Store\StoreInterface;
 use PhpLlm\LlmChain\Store\VectorStoreInterface;
 use PhpLlm\LlmChainBundle\Profiler\DataCollector;
@@ -86,10 +84,6 @@ final class LlmChainExtension extends Extension
         if (1 === count($config['chain']) && isset($chainName)) {
             $container->setAlias(ChainInterface::class, 'llm_chain.chain.'.$chainName);
         }
-        $llms = array_keys($container->findTaggedServiceIds('llm_chain.model.language_model'));
-        if (1 === count($llms)) {
-            $container->setAlias(LanguageModel::class, reset($llms));
-        }
 
         foreach ($config['store'] ?? [] as $type => $store) {
             $this->processStoreConfig($type, $store, $container);
@@ -106,10 +100,6 @@ final class LlmChainExtension extends Extension
         if (1 === count($config['embedder']) && isset($embedderName)) {
             $container->setAlias(Embedder::class, 'llm_chain.embedder.'.$embedderName);
         }
-        $embeddings = array_keys($container->findTaggedServiceIds('llm_chain.model.embeddings_model'));
-        if (1 === count($embeddings)) {
-            $container->setAlias(EmbeddingsModel::class, reset($embeddings));
-        }
 
         $container->registerAttributeForAutoconfiguration(AsTool::class, static function (ChildDefinition $definition, AsTool $attribute): void {
             $definition->addTag('llm_chain.tool', [
@@ -119,13 +109,13 @@ final class LlmChainExtension extends Extension
             ]);
         });
 
-        $container->registerForAutoconfiguration(InputProcessor::class)
+        $container->registerForAutoconfiguration(InputProcessorInterface::class)
             ->addTag('llm_chain.chain.input_processor');
-        $container->registerForAutoconfiguration(OutputProcessor::class)
+        $container->registerForAutoconfiguration(OutputProcessorInterface::class)
             ->addTag('llm_chain.chain.output_processor');
-        $container->registerForAutoconfiguration(ModelClient::class)
+        $container->registerForAutoconfiguration(ModelClientInterface::class)
             ->addTag('llm_chain.platform.model_client');
-        $container->registerForAutoconfiguration(ResponseConverter::class)
+        $container->registerForAutoconfiguration(ResponseConverterInterface::class)
             ->addTag('llm_chain.platform.response_converter');
 
         if (false === $container->getParameter('kernel.debug')) {
@@ -253,10 +243,10 @@ final class LlmChainExtension extends Extension
         if ($config['tools']['enabled']) {
             // Create specific toolbox and process if tools are explicitly defined
             if (0 !== count($config['tools']['services'])) {
-                $memoryFactoryDefinition = new Definition(MemoryFactory::class);
+                $memoryFactoryDefinition = new Definition(MemoryToolFactory::class);
                 $container->setDefinition('llm_chain.toolbox.'.$name.'.memory_factory', $memoryFactoryDefinition);
                 $chainFactoryDefinition = new Definition(ChainFactory::class, [
-                    '$factories' => [new Reference('llm_chain.toolbox.'.$name.'.memory_factory'), new Reference(ReflectionFactory::class)],
+                    '$factories' => [new Reference('llm_chain.toolbox.'.$name.'.memory_factory'), new Reference(ReflectionToolFactory::class)],
                 ]);
                 $container->setDefinition('llm_chain.toolbox.'.$name.'.chain_factory', $chainFactoryDefinition);
 

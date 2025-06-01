@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace PhpLlm\LlmChainBundle\Profiler;
 
-use PhpLlm\LlmChain\Model\Message\Content\File;
-use PhpLlm\LlmChain\Model\Model;
-use PhpLlm\LlmChain\Model\Response\AsyncResponse;
-use PhpLlm\LlmChain\Model\Response\ResponseInterface;
-use PhpLlm\LlmChain\PlatformInterface;
+use PhpLlm\LlmChain\Platform\Message\Content\File;
+use PhpLlm\LlmChain\Platform\Model;
+use PhpLlm\LlmChain\Platform\PlatformInterface;
+use PhpLlm\LlmChain\Platform\Response\AsyncResponse;
+use PhpLlm\LlmChain\Platform\Response\ResponseInterface;
 
 /**
  * @phpstan-type PlatformCallData array{

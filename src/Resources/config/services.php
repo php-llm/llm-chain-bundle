@@ -8,10 +8,10 @@ use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProc
 use PhpLlm\LlmChain\Chain\StructuredOutput\ResponseFormatFactory;
 use PhpLlm\LlmChain\Chain\StructuredOutput\ResponseFormatFactoryInterface;
 use PhpLlm\LlmChain\Chain\Toolbox\ChainProcessor as ToolProcessor;
-use PhpLlm\LlmChain\Chain\Toolbox\MetadataFactory;
-use PhpLlm\LlmChain\Chain\Toolbox\MetadataFactory\ReflectionFactory;
 use PhpLlm\LlmChain\Chain\Toolbox\Toolbox;
 use PhpLlm\LlmChain\Chain\Toolbox\ToolboxInterface;
+use PhpLlm\LlmChain\Chain\Toolbox\ToolFactory\ReflectionToolFactory;
+use PhpLlm\LlmChain\Chain\Toolbox\ToolFactoryInterface;
 use PhpLlm\LlmChainBundle\Profiler\DataCollector;
 use PhpLlm\LlmChainBundle\Profiler\TraceableToolbox;
 
@@ -33,7 +33,7 @@ return static function (ContainerConfigurator $container): void {
             ->autowire()
             ->abstract()
             ->args([
-                '$metadataFactory' => service(MetadataFactory::class),
+                '$metadataFactory' => service(ToolFactoryInterface::class),
                 '$tools' => abstract_arg('Collection of tools'),
             ])
         ->set(Toolbox::class)
@@ -42,8 +42,8 @@ return static function (ContainerConfigurator $container): void {
                 '$tools' => tagged_iterator('llm_chain.tool'),
             ])
             ->alias(ToolboxInterface::class, Toolbox::class)
-        ->set(ReflectionFactory::class)
-            ->alias(MetadataFactory::class, ReflectionFactory::class)
+        ->set(ReflectionToolFactory::class)
+            ->alias(ToolFactoryInterface::class, ReflectionToolFactory::class)
         ->set('llm_chain.tool.chain_processor.abstract')
             ->class(ToolProcessor::class)
             ->abstract()

@@ -35,6 +35,3 @@ ci-lowest: deps-low rector cs phpstan tests
 
 ci-dev: deps-dev rector cs phpstan tests
 	git restore composer.json
-
-coverage:
-	XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html=coverage

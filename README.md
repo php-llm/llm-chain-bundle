@@ -10,7 +10,7 @@ composer require php-llm/llm-chain-bundle
 
 ## Configuration
 
-### Simple Example with OpenAI
+### Basic Example with OpenAI
 
 ```yaml
 # config/packages/llm_chain.yaml

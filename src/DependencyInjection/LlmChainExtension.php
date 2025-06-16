@@ -23,6 +23,8 @@ use PhpLlm\LlmChain\Platform\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIP
 use PhpLlm\LlmChain\Platform\Bridge\Google\Gemini;
 use PhpLlm\LlmChain\Platform\Bridge\Google\PlatformFactory as GooglePlatformFactory;
 use PhpLlm\LlmChain\Platform\Bridge\Meta\Llama;
+use PhpLlm\LlmChain\Platform\Bridge\Mistral\Mistral;
+use PhpLlm\LlmChain\Platform\Bridge\Mistral\PlatformFactory as MistralPlatformFactory;
 use PhpLlm\LlmChain\Platform\Bridge\OpenAI\Embeddings;
 use PhpLlm\LlmChain\Platform\Bridge\OpenAI\GPT;
 use PhpLlm\LlmChain\Platform\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
@@ -202,6 +204,21 @@ final class LlmChainExtension extends Extension
             return;
         }
 
+        if ('mistral' === $type) {
+            $platformId = 'llm_chain.platform.mistral';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(MistralPlatformFactory::class.'::create')
+                ->setAutowired(true)
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->setArguments(['$apiKey' => $platform['api_key']])
+                ->addTag('llm_chain.platform');
+
+            $container->setDefinition($platformId, $definition);
+
+            return;
+        }
+
         throw new \InvalidArgumentException(sprintf('Platform "%s" is not supported for configuration via bundle at this point.', $type));
     }
 
@@ -218,6 +235,7 @@ final class LlmChainExtension extends Extension
             'claude' => Claude::class,
             'llama' => Llama::class,
             'gemini' => Gemini::class,
+            'mistral' => Mistral::class,
             default => throw new \InvalidArgumentException(sprintf('Model "%s" is not supported.', $modelName)),
         };
         $modelDefinition = new Definition($modelClass);

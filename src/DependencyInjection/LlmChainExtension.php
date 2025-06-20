@@ -28,7 +28,9 @@ use PhpLlm\LlmChain\Platform\Bridge\Mistral\PlatformFactory as MistralPlatformFa
 use PhpLlm\LlmChain\Platform\Bridge\OpenAI\Embeddings;
 use PhpLlm\LlmChain\Platform\Bridge\OpenAI\GPT;
 use PhpLlm\LlmChain\Platform\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
+use PhpLlm\LlmChain\Platform\Bridge\OpenRouter\PlatformFactory as OpenRouterPlatformFactory;
 use PhpLlm\LlmChain\Platform\Bridge\Voyage\Voyage;
+use PhpLlm\LlmChain\Platform\Model;
 use PhpLlm\LlmChain\Platform\ModelClientInterface;
 use PhpLlm\LlmChain\Platform\Platform;
 use PhpLlm\LlmChain\Platform\PlatformInterface;
@@ -204,6 +206,21 @@ final class LlmChainExtension extends Extension
             return;
         }
 
+        if ('openrouter' === $type) {
+            $platformId = 'llm_chain.platform.openrouter';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(OpenRouterPlatformFactory::class.'::create')
+                ->setAutowired(true)
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->setArguments(['$apiKey' => $platform['api_key']])
+                ->addTag('llm_chain.platform');
+
+            $container->setDefinition($platformId, $definition);
+
+            return;
+        }
+
         if ('mistral' === $type) {
             $platformId = 'llm_chain.platform.mistral';
             $definition = (new Definition(Platform::class))
@@ -236,6 +253,7 @@ final class LlmChainExtension extends Extension
             'llama' => Llama::class,
             'gemini' => Gemini::class,
             'mistral' => Mistral::class,
+            'openrouter' => Model::class,
             default => throw new \InvalidArgumentException(sprintf('Model "%s" is not supported.', $modelName)),
         };
         $modelDefinition = new Definition($modelClass);

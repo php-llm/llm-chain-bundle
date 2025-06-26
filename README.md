@@ -18,6 +18,7 @@ llm_chain:
     platform:
         openai:
             api_key: '%env(OPENAI_API_KEY)%'
+            # contract: '@my_custom_contract_service'  # Optional: Custom contract service
     chain:
         default:
             model:
@@ -31,6 +32,7 @@ llm_chain:
     platform:
         anthropic:
             api_key: '%env(ANTHROPIC_API_KEY)%'
+            contract: '@my_custom_anthropic_contract'  # Optional: Custom contract service
         azure:
             # multiple deployments possible
             gpt_deployment:
@@ -38,8 +40,10 @@ llm_chain:
                 deployment: '%env(AZURE_OPENAI_GPT)%'
                 api_key: '%env(AZURE_OPENAI_KEY)%'
                 api_version: '%env(AZURE_GPT_VERSION)%'
+                contract: '@my_custom_azure_contract'  # Optional: Custom contract service
         google:
             api_key: '%env(GOOGLE_API_KEY)%'
+            contract: '@my_custom_google_contract'  # Optional: Custom contract service
     chain:
         rag:
             platform: 'llm_chain.platform.azure.gpt_deployment'
@@ -85,6 +89,56 @@ llm_chain:
                 name: 'Embeddings'
                 version: 'text-embedding-ada-002'
 ```
+
+## Custom Contracts
+
+You can inject custom contract services into your platforms to customize their behavior. This is useful for:
+- Custom authentication methods
+- Request/response processing
+- Platform-specific normalizers and converters
+
+### Creating a Custom Contract Service
+
+1. Create a service that implements `PhpLlm\LlmChainBundle\Contract\ContractInterface`:
+
+```php
+<?php
+
+namespace App\Service;
+
+use PhpLlm\LlmChainBundle\Contract\ContractInterface;
+
+class MyCustomOpenAIContract implements ContractInterface
+{
+    // Implement your custom contract logic here
+    // This could include custom normalizers, request/response handlers, etc.
+}
+```
+
+2. Register your service in Symfony (if not using autoconfigure):
+
+```yaml
+# config/services.yaml
+services:
+    App\Service\MyCustomOpenAIContract:
+        tags: ['llm_chain.platform.contract']
+```
+
+3. Reference your contract service in the platform configuration:
+
+```yaml
+# config/packages/llm_chain.yaml
+llm_chain:
+    platform:
+        openai:
+            api_key: '%env(OPENAI_API_KEY)%'
+            contract: '@App\Service\MyCustomOpenAIContract'
+        azure_openai:
+            api_key: '%env(AZURE_OPENAI_API_KEY)%'
+            contract: '@App\Service\MyCustomAzureContract'
+```
+
+The `contract` key is optional and defaults to `null` when not specified. When provided, it must reference a valid Symfony service that implements `ContractInterface`.
 
 ## Usage
 

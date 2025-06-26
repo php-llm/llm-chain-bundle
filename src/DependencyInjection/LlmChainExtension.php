@@ -42,6 +42,7 @@ use PhpLlm\LlmChain\Store\Bridge\Pinecone\Store as PineconeStore;
 use PhpLlm\LlmChain\Store\Embedder;
 use PhpLlm\LlmChain\Store\StoreInterface;
 use PhpLlm\LlmChain\Store\VectorStoreInterface;
+use PhpLlm\LlmChainBundle\Contract\ContractInterface;
 use PhpLlm\LlmChainBundle\Profiler\DataCollector;
 use PhpLlm\LlmChainBundle\Profiler\TraceablePlatform;
 use PhpLlm\LlmChainBundle\Profiler\TraceableToolbox;
@@ -121,6 +122,8 @@ final class LlmChainExtension extends Extension
             ->addTag('llm_chain.platform.model_client');
         $container->registerForAutoconfiguration(ResponseConverterInterface::class)
             ->addTag('llm_chain.platform.response_converter');
+        $container->registerForAutoconfiguration(ContractInterface::class)
+            ->addTag('llm_chain.platform.contract');
 
         if (false === $container->getParameter('kernel.debug')) {
             $container->removeDefinition(DataCollector::class);
@@ -149,6 +152,10 @@ final class LlmChainExtension extends Extension
                 $definition->replaceArgument('$version', $platform['version']);
             }
 
+            if (isset($platform['contract']) && null !== $platform['contract']) {
+                $definition->replaceArgument('$contract', new Reference($platform['contract']));
+            }
+
             $container->setDefinition($platformId, $definition);
 
             return;
@@ -170,6 +177,10 @@ final class LlmChainExtension extends Extension
                     ])
                     ->addTag('llm_chain.platform');
 
+                if (isset($config['contract']) && null !== $config['contract']) {
+                    $definition->replaceArgument('$contract', new Reference($config['contract']));
+                }
+
                 $container->setDefinition($platformId, $definition);
             }
 
@@ -186,6 +197,10 @@ final class LlmChainExtension extends Extension
                 ->setArguments(['$apiKey' => $platform['api_key']])
                 ->addTag('llm_chain.platform');
 
+            if (isset($platform['contract']) && null !== $platform['contract']) {
+                $definition->replaceArgument('$contract', new Reference($platform['contract']));
+            }
+
             $container->setDefinition($platformId, $definition);
 
             return;
@@ -200,6 +215,10 @@ final class LlmChainExtension extends Extension
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments(['$apiKey' => $platform['api_key']])
                 ->addTag('llm_chain.platform');
+
+            if (isset($platform['contract']) && null !== $platform['contract']) {
+                $definition->replaceArgument('$contract', new Reference($platform['contract']));
+            }
 
             $container->setDefinition($platformId, $definition);
 
@@ -216,6 +235,10 @@ final class LlmChainExtension extends Extension
                 ->setArguments(['$apiKey' => $platform['api_key']])
                 ->addTag('llm_chain.platform');
 
+            if (isset($platform['contract']) && null !== $platform['contract']) {
+                $definition->replaceArgument('$contract', new Reference($platform['contract']));
+            }
+
             $container->setDefinition($platformId, $definition);
 
             return;
@@ -230,6 +253,10 @@ final class LlmChainExtension extends Extension
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments(['$apiKey' => $platform['api_key']])
                 ->addTag('llm_chain.platform');
+
+            if (isset($platform['contract']) && null !== $platform['contract']) {
+                $definition->replaceArgument('$contract', new Reference($platform['contract']));
+            }
 
             $container->setDefinition($platformId, $definition);
 

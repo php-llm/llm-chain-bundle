@@ -197,7 +197,7 @@ final class Configuration implements ConfigurationInterface
                             ->end()
                             ->arrayNode('model')
                                 ->children()
-                                    ->scalarNode('name')->isRequired()->end()
+                                    ->scalarNode('className')->isRequired()->end()
                                     ->scalarNode('version')->defaultNull()->end()
                                     ->arrayNode('options')
                                         ->scalarPrototype()->end()

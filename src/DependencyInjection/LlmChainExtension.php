@@ -25,11 +25,9 @@ use PhpLlm\LlmChain\Platform\Bridge\Google\PlatformFactory as GooglePlatformFact
 use PhpLlm\LlmChain\Platform\Bridge\Meta\Llama;
 use PhpLlm\LlmChain\Platform\Bridge\Mistral\Mistral;
 use PhpLlm\LlmChain\Platform\Bridge\Mistral\PlatformFactory as MistralPlatformFactory;
-use PhpLlm\LlmChain\Platform\Bridge\OpenAI\Embeddings;
 use PhpLlm\LlmChain\Platform\Bridge\OpenAI\GPT;
 use PhpLlm\LlmChain\Platform\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
 use PhpLlm\LlmChain\Platform\Bridge\OpenRouter\PlatformFactory as OpenRouterPlatformFactory;
-use PhpLlm\LlmChain\Platform\Bridge\Voyage\Voyage;
 use PhpLlm\LlmChain\Platform\Model;
 use PhpLlm\LlmChain\Platform\ModelClientInterface;
 use PhpLlm\LlmChain\Platform\Platform;
@@ -457,14 +455,13 @@ final class LlmChainExtension extends Extension
      */
     private function processEmbedderConfig(int|string $name, array $config, ContainerBuilder $container): void
     {
-        ['name' => $modelName, 'version' => $version, 'options' => $options] = $config['model'];
+        ['className' => $modelClassName, 'version' => $version, 'options' => $options] = $config['model'];
 
-        $modelClass = match (strtolower((string) $modelName)) {
-            'embeddings' => Embeddings::class,
-            'voyage' => Voyage::class,
-            default => throw new \InvalidArgumentException(sprintf('Model "%s" is not supported.', $modelName)),
-        };
-        $modelDefinition = (new Definition($modelClass));
+        if (!is_a($modelClassName, Model::class, true)) {
+            throw new \InvalidArgumentException(sprintf('"%s" class is not extending PhpLlm\LlmChain\Platform\Model.', $modelClassName));
+        }
+
+        $modelDefinition = (new Definition((string) $modelClassName));
         if (null !== $version) {
             $modelDefinition->setArgument('$name', $version);
         }

@@ -201,7 +201,7 @@
                                     {% for name, parameter in tool.parameters.properties %}
                                         <li>
                                             <strong>{{ name }} ({{ parameter.type }})</strong><br />
-                                            <i>{{ parameter.description }}</i>
+                                            <i>{{ parameter.description|default() }}</i>
                                         </li>
                                     {% endfor %}
                                 </ul>

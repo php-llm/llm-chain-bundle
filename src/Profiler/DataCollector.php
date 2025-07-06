@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhpLlm\LlmChainBundle\Profiler;
 
 use PhpLlm\LlmChain\Chain\Toolbox\ToolboxInterface;
+use PhpLlm\LlmChain\Platform\Model;
 use PhpLlm\LlmChain\Platform\Tool\Tool;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
@@ -46,7 +47,7 @@ final class DataCollector extends AbstractDataCollector
     {
         $this->data = [
             'tools' => $this->defaultToolBox->getTools(),
-            'platform_calls' => array_merge(...array_map(fn (TraceablePlatform $platform) => $platform->calls, $this->platforms)),
+            'platform_calls' => array_merge(...array_map($this->awaitCallResults(...), $this->platforms)),
             'tool_calls' => array_merge(...array_map(fn (TraceableToolbox $toolbox) => $toolbox->calls, $this->toolboxes)),
         ];
     }
@@ -78,5 +79,24 @@ final class DataCollector extends AbstractDataCollector
     public function getToolCalls(): array
     {
         return $this->data['tool_calls'] ?? [];
+    }
+
+    /**
+     * @return array{
+     *     model: Model,
+     *     input: array<mixed>|string|object,
+     *     options: array<string, mixed>,
+     *     response: string|iterable<mixed>|object|null
+     * }[]
+     */
+    private function awaitCallResults(TraceablePlatform $platform): array
+    {
+        $calls = $platform->calls;
+        foreach ($calls as $key => $call) {
+            $call['response'] = $call['response']->await()->getContent();
+            $calls[$key] = $call;
+        }
+
+        return $calls;
     }
 }

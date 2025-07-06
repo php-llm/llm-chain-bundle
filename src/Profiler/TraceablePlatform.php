@@ -7,14 +7,14 @@ namespace PhpLlm\LlmChainBundle\Profiler;
 use PhpLlm\LlmChain\Platform\Message\Content\File;
 use PhpLlm\LlmChain\Platform\Model;
 use PhpLlm\LlmChain\Platform\PlatformInterface;
-use PhpLlm\LlmChain\Platform\Response\ResponseInterface;
+use PhpLlm\LlmChain\Platform\Response\ResponsePromise;
 
 /**
  * @phpstan-type PlatformCallData array{
  *     model: Model,
  *     input: array<mixed>|string|object,
  *     options: array<string, mixed>,
- *     response: ResponseInterface,
+ *     response: ResponsePromise,
  * }
  */
 final class TraceablePlatform implements PlatformInterface
@@ -29,7 +29,7 @@ final class TraceablePlatform implements PlatformInterface
     ) {
     }
 
-    public function request(Model $model, array|string|object $input, array $options = []): ResponseInterface
+    public function request(Model $model, array|string|object $input, array $options = []): ResponsePromise
     {
         $response = $this->platform->request($model, $input, $options);
 
@@ -41,7 +41,7 @@ final class TraceablePlatform implements PlatformInterface
             'model' => $model,
             'input' => is_object($input) ? clone $input : $input,
             'options' => $options,
-            'response' => $response->getContent(),
+            'response' => $response,
         ];
 
         return $response;

@@ -39,7 +39,8 @@ use PhpLlm\LlmChain\Store\Bridge\Azure\SearchStore as AzureSearchStore;
 use PhpLlm\LlmChain\Store\Bridge\ChromaDB\Store as ChromaDBStore;
 use PhpLlm\LlmChain\Store\Bridge\MongoDB\Store as MongoDBStore;
 use PhpLlm\LlmChain\Store\Bridge\Pinecone\Store as PineconeStore;
-use PhpLlm\LlmChain\Store\Embedder;
+use PhpLlm\LlmChain\Store\Document\Vectorizer;
+use PhpLlm\LlmChain\Store\Indexer;
 use PhpLlm\LlmChain\Store\StoreInterface;
 use PhpLlm\LlmChain\Store\VectorStoreInterface;
 use PhpLlm\LlmChainBundle\Profiler\DataCollector;
@@ -98,11 +99,11 @@ final class LlmChainExtension extends Extension
             $container->setAlias(StoreInterface::class, reset($stores));
         }
 
-        foreach ($config['embedder'] as $embedderName => $embedder) {
-            $this->processEmbedderConfig($embedderName, $embedder, $container);
+        foreach ($config['indexer'] as $indexerName => $indexer) {
+            $this->processIndexerConfig($indexerName, $indexer, $container);
         }
-        if (1 === count($config['embedder']) && isset($embedderName)) {
-            $container->setAlias(Embedder::class, 'llm_chain.embedder.'.$embedderName);
+        if (1 === count($config['indexer']) && isset($indexerName)) {
+            $container->setAlias(Indexer::class, 'llm_chain.indexer.'.$indexerName);
         }
 
         $container->registerAttributeForAutoconfiguration(AsTool::class, static function (ChildDefinition $definition, AsTool $attribute): void {
@@ -455,7 +456,7 @@ final class LlmChainExtension extends Extension
     /**
      * @param array<string, mixed> $config
      */
-    private function processEmbedderConfig(int|string $name, array $config, ContainerBuilder $container): void
+    private function processIndexerConfig(int|string $name, array $config, ContainerBuilder $container): void
     {
         ['name' => $modelName, 'version' => $version, 'options' => $options] = $config['model'];
 
@@ -472,14 +473,19 @@ final class LlmChainExtension extends Extension
             $modelDefinition->setArgument('$options', $options);
         }
         $modelDefinition->addTag('llm_chain.model.embeddings_model');
-        $container->setDefinition('llm_chain.embedder.'.$name.'.model', $modelDefinition);
+        $container->setDefinition('llm_chain.indexer.'.$name.'.model', $modelDefinition);
 
-        $definition = new Definition(Embedder::class, [
-            '$model' => new Reference('llm_chain.embedder.'.$name.'.model'),
+        $vectorizerDefinition = new Definition(Vectorizer::class, [
             '$platform' => new Reference($config['platform']),
+            '$model' => new Reference('llm_chain.indexer.'.$name.'.model'),
+        ]);
+        $container->setDefinition('llm_chain.indexer.'.$name.'.vectorizer', $vectorizerDefinition);
+
+        $definition = new Definition(Indexer::class, [
+            '$vectorizer' => new Reference('llm_chain.indexer.'.$name.'.vectorizer'),
             '$store' => new Reference($config['store']),
         ]);
 
-        $container->setDefinition('llm_chain.embedder.'.$name, $definition);
+        $container->setDefinition('llm_chain.indexer.'.$name, $definition);
     }
 }

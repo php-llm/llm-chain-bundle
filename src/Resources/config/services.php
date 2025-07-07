@@ -10,8 +10,10 @@ use PhpLlm\LlmChain\Chain\StructuredOutput\ResponseFormatFactoryInterface;
 use PhpLlm\LlmChain\Chain\Toolbox\ChainProcessor as ToolProcessor;
 use PhpLlm\LlmChain\Chain\Toolbox\Toolbox;
 use PhpLlm\LlmChain\Chain\Toolbox\ToolboxInterface;
+use PhpLlm\LlmChain\Chain\Toolbox\ToolCallArgumentResolver;
 use PhpLlm\LlmChain\Chain\Toolbox\ToolFactory\ReflectionToolFactory;
 use PhpLlm\LlmChain\Chain\Toolbox\ToolFactoryInterface;
+use PhpLlm\LlmChain\Chain\Toolbox\ToolResultConverter;
 use PhpLlm\LlmChainBundle\Profiler\DataCollector;
 use PhpLlm\LlmChainBundle\Profiler\TraceableToolbox;
 
@@ -44,6 +46,8 @@ return static function (ContainerConfigurator $container): void {
             ->alias(ToolboxInterface::class, Toolbox::class)
         ->set(ReflectionToolFactory::class)
             ->alias(ToolFactoryInterface::class, ReflectionToolFactory::class)
+        ->set(ToolResultConverter::class)
+        ->set(ToolCallArgumentResolver::class)
         ->set('llm_chain.tool.chain_processor.abstract')
             ->class(ToolProcessor::class)
             ->abstract()

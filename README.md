@@ -63,7 +63,7 @@ llm_chain:
                 - service: 'llm_chain.chain.research'
                   name: 'wikipedia_research'
                   description: 'Can research on Wikipedia'
-                  is_chain: true
+                  is_agent: true
         research:
             platform: 'llm_chain.platform.anthropic'
             model:

@@ -114,7 +114,7 @@ final class Configuration implements ConfigurationInterface
                                                 ->scalarNode('name')->end()
                                                 ->scalarNode('description')->end()
                                                 ->scalarNode('method')->end()
-                                                ->booleanNode('is_chain')->defaultFalse()->end()
+                                                ->booleanNode('is_agent')->defaultFalse()->end()
                                             ->end()
                                             ->beforeNormalization()
                                                 ->ifString()

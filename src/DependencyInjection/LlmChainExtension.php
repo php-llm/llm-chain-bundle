@@ -292,7 +292,7 @@ final class LlmChainExtension extends Extension
                     $reference = new Reference($tool['service']);
                     // We use the memory factory in case method, description and name are set
                     if (isset($tool['name'], $tool['description'])) {
-                        if ($tool['is_chain']) {
+                        if ($tool['is_agent']) {
                             $chainWrapperDefinition = new Definition(ChainTool::class, ['$chain' => $reference]);
                             $container->setDefinition('llm_chain.toolbox.'.$name.'.chain_wrapper.'.$tool['name'], $chainWrapperDefinition);
                             $reference = new Reference('llm_chain.toolbox.'.$name.'.chain_wrapper.'.$tool['name']);

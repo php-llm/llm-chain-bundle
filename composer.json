@@ -13,6 +13,7 @@
             "email": "oskarstark@googlemail.com"
         }
     ],
+    "abandoned": "symfony/ai-bundle",
     "require": {
         "php": ">=8.2",
         "php-llm/llm-chain": "^0.24",

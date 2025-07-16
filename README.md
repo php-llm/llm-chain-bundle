@@ -1,5 +1,10 @@
 # LLM Chain Bundle
 
+> [!IMPORTANT]  
+> **PHP LLM becomes Symfony AI** - this project moved to [github.com/symfony/ai](https://github.com/symfony/ai).
+> Please use the new repository for all future development, issues, and contributions.
+> Thanks for your contributions - we hope to see you at Symfony AI!
+
 Symfony integration bundle for [php-llm/llm-chain](https://github.com/php-llm/llm-chain) library.
 
 ## Installation
